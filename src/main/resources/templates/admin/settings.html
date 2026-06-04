@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring Settings - Admin - WC Predictor 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/">WC Predictor 2026</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active text-warning" href="/admin">Admin</a></li>
+                </ul>
+                <span class="navbar-text" sec:authentication="name"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4"><i class="bi bi-sliders"></i> Scoring Settings</h2>
+
+        <div th:if="${param.updated}" class="alert alert-success">Settings updated successfully.</div>
+
+        <form method="post" action="/admin/settings">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Match Score Prediction Points</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Correct Score</label>
+                            <input type="number" class="form-control" name="setting_points_correct_score"
+                                   th:value="${settings['points_correct_score']?.value}" step="0.5" min="0">
+                            <small class="text-muted">Points for predicting the exact score</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Correct Margin</label>
+                            <input type="number" class="form-control" name="setting_points_correct_margin"
+                                   th:value="${settings['points_correct_margin']?.value}" step="0.5" min="0">
+                            <small class="text-muted">Points for correct goal difference</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Correct Result</label>
+                            <input type="number" class="form-control" name="setting_points_correct_result"
+                                   th:value="${settings['points_correct_result']?.value}" step="0.5" min="0">
+                            <small class="text-muted">Points for correct winner/draw</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Draw - Correct Score</label>
+                            <input type="number" class="form-control" name="setting_points_draw_correct"
+                                   th:value="${settings['points_draw_correct']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Draw - Different Score</label>
+                            <input type="number" class="form-control" name="setting_points_draw_diff"
+                                   th:value="${settings['points_draw_diff']?.value}" step="0.5" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Tournament Award Points</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Golden Boot</label>
+                            <input type="number" class="form-control" name="setting_points_golden_boot"
+                                   th:value="${settings['points_golden_boot']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Golden Ball</label>
+                            <input type="number" class="form-control" name="setting_points_golden_ball"
+                                   th:value="${settings['points_golden_ball']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Golden Glove</label>
+                            <input type="number" class="form-control" name="setting_points_golden_glove"
+                                   th:value="${settings['points_golden_glove']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Best Young Player</label>
+                            <input type="number" class="form-control" name="setting_points_young_player"
+                                   th:value="${settings['points_young_player']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fair Play Trophy</label>
+                            <input type="number" class="form-control" name="setting_points_fair_play"
+                                   th:value="${settings['points_fair_play']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Most Entertaining</label>
+                            <input type="number" class="form-control" name="setting_points_entertaining"
+                                   th:value="${settings['points_entertaining']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Finalist (each)</label>
+                            <input type="number" class="form-control" name="setting_points_finalist"
+                                   th:value="${settings['points_finalist']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Champion</label>
+                            <input type="number" class="form-control" name="setting_points_champion"
+                                   th:value="${settings['points_champion']?.value}" step="0.5" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Group Stage Points</h5></div>
+                <div class="card-body">
+                    <div class="col-md-4">
+                        <label class="form-label">Per Correct Qualifier</label>
+                        <input type="number" class="form-control" name="setting_points_group_qualifier"
+                               th:value="${settings['points_group_qualifier']?.value}" step="0.5" min="0">
+                        <small class="text-muted">Points for each correctly predicted advancing team (out of 32)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-5">
+                <a href="/admin" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save All Settings</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

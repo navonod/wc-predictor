@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Predictions - WC Predictor 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-trophy-fill"></i> WC Predictor 2026</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/predict">Predictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/simulate">Simulator</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/leaderboard">Leaderboard</a></li>
+                </ul>
+                <span class="navbar-text" sec:authentication="name"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2 class="mb-4"><i class="bi bi-award"></i> Tournament Predictions</h2>
+        <p class="text-muted">Predict the major awards and knockout outcomes before the tournament begins.</p>
+
+        <form method="post" th:action>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">Individual Awards</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Golden Boot (Top Scorer)</label>
+                                <input type="text" class="form-control" name="goldenBoot" th:value="${prediction?.goldenBoot}" placeholder="e.g. Kylian Mbappe">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Golden Ball (Best Player)</label>
+                                <input type="text" class="form-control" name="goldenBall" th:value="${prediction?.goldenBall}" placeholder="e.g. Lionel Messi">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Golden Glove (Best Goalkeeper)</label>
+                                <input type="text" class="form-control" name="goldenGlove" th:value="${prediction?.goldenGlove}" placeholder="e.g. Emiliano Martinez">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Best Young Player</label>
+                                <input type="text" class="form-control" name="youngPlayer" th:value="${prediction?.youngPlayer}" placeholder="e.g. Jude Bellingham">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-header"><h5 class="mb-0">Team Awards</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">FIFA Fair Play Trophy</label>
+                                <input type="text" class="form-control" name="fairPlay" th:value="${prediction?.fairPlay}" placeholder="Team name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Most Entertaining Team</label>
+                                <input type="text" class="form-control" name="entertaining" th:value="${prediction?.mostEntertaining}" placeholder="Team name">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header"><h5 class="mb-0">Knockout Predictions</h5></div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Finalist 1</label>
+                                <select class="form-select" name="finalist1">
+                                    <option value="">-- Select --</option>
+                                    <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"
+                                            th:selected="${prediction?.finalist1?.id == team.id}"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Finalist 2</label>
+                                <select class="form-select" name="finalist2">
+                                    <option value="">-- Select --</option>
+                                    <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"
+                                            th:selected="${prediction?.finalist2?.id == team.id}"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Champion (20 pts)</label>
+                                <select class="form-select" name="champion">
+                                    <option value="">-- Select --</option>
+                                    <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"
+                                            th:selected="${prediction?.champion?.id == team.id}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4 mb-5">
+                <a href="/predict" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Predictions</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

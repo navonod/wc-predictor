@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - WC Predictor 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-trophy-fill"></i> WC Predictor 2026</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/"><i class="bi bi-house"></i> Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/predict"><i class="bi bi-pencil-square"></i> Predictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/simulate"><i class="bi bi-dice-6"></i> Simulator</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/leaderboard"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link text-warning" href="/admin"><i class="bi bi-gear"></i> Admin</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="nav-link" sec:authentication="name"></span>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="text-center py-5">
+            <h1 class="display-3 mb-3"><i class="bi bi-trophy-fill text-warning"></i></h1>
+            <h1 class="display-5">FIFA World Cup 2026</h1>
+            <p class="lead text-muted">June 11 - July 19, 2026 &middot; Canada, Mexico, United States</p>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-pencil-square display-4 text-primary"></i>
+                        <h5 class="card-title mt-3">Make Predictions</h5>
+                        <p class="card-text text-muted">Predict match scores, group standings, and tournament awards.</p>
+                        <a href="/predict" class="btn btn-primary">Go to Predictions</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-trophy display-4 text-success"></i>
+                        <h5 class="card-title mt-3">Leaderboard</h5>
+                        <p class="card-text text-muted">See how you rank against other players.</p>
+                        <a href="/leaderboard" class="btn btn-success">View Leaderboard</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <i class="bi bi-globe-americas display-4 text-info"></i>
+                        <h5 class="card-title mt-3">48 Teams</h5>
+                        <p class="card-text text-muted">12 groups of 4. Top 2 + 8 best 3rd place teams advance to Round of 32.</p>
+                        <span class="badge bg-info">104 Total Matches</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> How It Works</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Pre-Tournament Predictions</h6>
+                        <ul class="small text-muted">
+                            <li>Pick which 32 teams will advance from the group stage</li>
+                            <li>Predict Golden Boot, Golden Ball, Golden Glove, Young Player</li>
+                            <li>Pick the Fair Play and Most Entertaining team</li>
+                            <li>Choose the two finalists and the champion</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Match-by-Match Predictions</h6>
+                        <ul class="small text-muted">
+                            <li>Predict scores round-by-round as matches approach</li>
+                            <li>Correct score: 3pts | Correct margin: 2pts | Correct result: 1pt</li>
+                            <li>Group stage split into 3 matchday prediction windows</li>
+                            <li>Knockout rounds each have their own prediction window</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

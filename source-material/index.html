@@ -1,0 +1,162 @@
+<html>
+<head>
+    <title>WC2022 Round <?=getCurrentRound() + 1?> Predictions</title>
+</head>
+<body>
+    <style>
+        table {
+          border-spacing: 0px;
+        }
+        .heading {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+          font-weight: bold;
+          padding-top: 20px
+        }
+        .dropdown {
+          font-family: Arial, Helvetica, sans-serif;
+        }
+        .match-details {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: smaller;
+          color: white;
+          padding-top: 20px;
+        }
+        .wc-label {
+            width: fit-content;
+            display: inline;
+            font-family: Arial, Helvetica, sans-serif;
+            color: white;
+        }
+        .label {
+            font-family: Arial, Helvetica, sans-serif;
+            display: block;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .score {
+            width:  2em;
+            text-align: center;
+            color: black;
+        }
+        .right {
+          text-align: right;
+        }
+        .bg-odd {
+          background-color: #FF0000;
+          border-color: #FF0000;
+          font-color: white;
+        }
+        .bg-even {
+          background-color: #006600;
+          border-color: #006600;
+          font-color: white;
+        }
+        .bottom {
+          padding-bottom: 10px;
+        }
+    </style>
+    <script>
+        function isNumberKey(evt){
+            var charCode = (evt.which) ? evt.which : evt.keyCode
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+        
+        function handleFormSubmit(data) {
+          google.script.run.processPredictScoresForm(data);
+          document.getElementById("predictScoresForm").reset();
+        }
+
+        function getActionUrl() {
+          var url = "<?=getScriptUrl()?>?page=summary&round=<?=getCurrentRound()?>";
+          var name = document.getElementById("name").value;
+          url = url+"&name="+name;
+          return url;
+        }
+
+        function updateActionUrl() {
+          document.getElementById("predictScoresForm").action.value=getActionUrl();
+        }
+
+    </script>
+    <form id="predictScoresForm" onsubmit="handleFormSubmit(this)" action="<?=getScriptUrl()?>">
+      <input type="hidden" id="roundNumber" name="roundNumber" value="<?=getCurrentRound()+1?>">
+      <input type="hidden" id="page" name="page" value="summary">
+      <table class="table table-responsive table-striped" align="center">
+        <tr>
+          <td colspan="2" class="right">
+            <label class="label" for="name">Who are you?</label>
+          </td>
+          <td colspan="3" class="">
+            <?
+              var names = pinsSheet.getRange(1,1,pinsSheet.getLastRow(),1).getValues().sort();
+            ?>
+              <select name="name" id="name" onchange="updateActionUrl()">
+            <?
+              
+              for (var nameArray of names) {
+                ?> <option class="dropdown" value="<?=nameArray[0]?>"><?=nameArray[0]?></option> <?
+              }
+            ?>
+              </select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="right">
+            <label class="label" for="pin">What's your PIN?</label>
+          </td>
+          <td colspan="3" class="">
+            <input type="text" size="4em" name="pin"/>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="5" class="heading">
+            Round <?= getCurrentRound()+1 ?> Predictions
+          </td>
+        </tr>
+
+        <?
+          var data = pointsSheet.getRange('A3:J72').getValues().filter(row => row[POINTS.round-1] == getCurrentRound()+1);
+          var colourCount=0;
+          for (var count = 0; count < data.length; count++) {
+            let match = data[count];
+            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            let bgColour = colourCount++ % 2 == 0 ? 'bg-even' : 'bg-odd';
+            ?>
+              <tr class="<?=bgColour?>">
+                <td colspan="5" class="match-details">
+                  
+                  Match <?=match[POINTS.match-1]?> | <?=match[POINTS.date-1].toLocaleDateString("en-US", options);?>
+                </td>
+              </tr>
+              <tr class="<?=bgColour?>">
+                  <td class="right bottom">
+                    <label class="wc-label" for="match-<?= match[POINTS.match-1] ?>-team-1"><?= match[POINTS.team1-1] ?></label>
+                  </td>
+                  <td class="bottom">
+                    <input name="match-<?= match[POINTS.match-1] ?>-team-1" type="text" onkeypress="return isNumberKey(event)" maxlength="2" class="score"/>
+                  </td>
+                  <td class="bottom"> vs </td>
+                  <td class="bottom">
+                    <input name="match-<?= match[POINTS.match-1] ?>-team-2" type="text" onkeypress="return isNumberKey(event)" maxlength="2" class="score"/>
+                  </td>
+                  <td class="bottom">
+                    <label class="wc-label" for="match-<?= match[POINTS.match-1] ?>-team-2"><?= match[POINTS.team2-1] ?></label>
+                  </td>
+              </tr>
+            <?
+          }
+        ?>
+        <tr>
+          <td class="heading" colspan="5">
+            <input type="submit" value="Submit">
+          </td>
+        </tr>
+      </table>
+    </form>
+
+</body>
+</html>

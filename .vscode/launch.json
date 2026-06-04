@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot",
+      "request": "launch",
+      "mainClass": "wcpredictor.WcPredictor",
+      "projectName": "WcPredictor",
+      "args": "",
+      "preLaunchTask": "",
+      "env": {}
+    },
+    {
+      "type": "java",
+      "name": "Spring Boot (Maven)",
+      "request": "launch",
+      "vmArgs": "-Dspring-boot.run.fork=false",
+      "mainClass": "org.apache.maven.wrapper.MavenWrapperMain",
+      "projectName": "WcPredictor",
+      "args": "spring-boot:run -f pom.xml"
+    }
+  ]
+}
