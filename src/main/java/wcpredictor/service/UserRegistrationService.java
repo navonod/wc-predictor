@@ -32,6 +32,9 @@ public class UserRegistrationService {
     @Value("${app.base-url}")
     private String baseUrl;
 
+    @Value("${spring.mail.properties.mail.smtp.from}")
+    private String fromAddress;
+
     public UserRegistrationService(UserRepository userRepository,
                                     ConfirmationTokenRepository tokenRepository,
                                     PasswordEncoder passwordEncoder,
@@ -79,6 +82,7 @@ public class UserRegistrationService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(fromAddress);
             helper.setTo(email);
             helper.setSubject("Confirm your WC Predictor account");
             helper.setText("<p>Click the link below to confirm your account:</p><p><a href=\"" + link + "\">" + link + "</a></p>", true);
