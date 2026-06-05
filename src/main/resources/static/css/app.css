@@ -1,15 +1,31 @@
 body {
-    background-color: #f8f9fa;
+    background: url('/images/bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+.navbar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .navbar-brand {
     font-weight: bold;
 }
 
-.leaderboard .table-warning {
-    background-color: #fff3cd !important;
+.card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(2px);
 }
 
 .card-header {
     font-weight: 600;
+    background: rgba(0, 0, 0, 0.75) !important;
+}
+
+.alert {
+    backdrop-filter: blur(2px);
+}
+
+.leaderboard .table-warning {
+    background-color: #fff3cd !important;
 }

@@ -2,11 +2,13 @@ services:
   wcpredictor:
     build: .
     ports:
-      - "8090:8090"
+      - "127.0.0.1:1986:8090"
     volumes:
-      - ./data:/app/data
+      - wcdata:/app/data
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      APP_BASE_URL: https://wc.thatcher.africa
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
     restart: unless-stopped
 
 volumes:

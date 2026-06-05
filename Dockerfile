@@ -10,6 +10,6 @@ RUN ./mvnw package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-RUN mkdir -p /app/uploads
-EXPOSE 8080
+RUN mkdir -p /app/data
+EXPOSE 8090
 ENTRYPOINT ["java", "-jar", "app.jar"]
