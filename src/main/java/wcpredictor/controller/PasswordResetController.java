@@ -101,6 +101,7 @@ public class PasswordResetController {
                                  @RequestParam String password,
                                  @RequestParam String confirmPassword,
                                  Model model) {
+        log.info("POST /reset-password received token: {}", token);
         if (!password.equals(confirmPassword)) {
             model.addAttribute("message", "Passwords do not match.");
             model.addAttribute("error", true);
