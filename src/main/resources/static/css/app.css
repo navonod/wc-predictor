@@ -2,6 +2,7 @@ body {
     background: url('/images/bg.jpg') no-repeat center center fixed;
     background-size: cover;
     min-height: 100vh;
+    margin: 0;
 }
 
 .navbar {
@@ -19,11 +20,32 @@ body {
 
 .card-header {
     font-weight: 600;
-    background: rgba(0, 0, 0, 0.75) !important;
 }
 
 .alert {
     backdrop-filter: blur(2px);
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.nav-link:hover {
+    color: #fff !important;
+}
+
+.nav-link.active {
+    color: #212529 !important;
+}
+
+.btn-outline-secondary {
+    color: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.btn-outline-secondary:hover {
+    color: #212529 !important;
+    background: #fff !important;
 }
 
 .leaderboard .table-warning {

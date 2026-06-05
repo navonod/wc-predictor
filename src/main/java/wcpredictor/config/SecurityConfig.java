@@ -37,7 +37,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, PersistentTokenRepository tokenRepository) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/confirm", "/forgot-password", "/reset-password", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/login", "/register", "/register/success", "/confirm", "/forgot-password", "/reset-password", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -48,6 +48,9 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
+            )
+            .headers(headers -> headers
+                .httpStrictTransportSecurity(hsts -> hsts.disable())
             )
             .rememberMe(remember -> remember
                 .tokenRepository(tokenRepository)
@@ -106,6 +109,16 @@ public class SecurityConfig {
                 if (redirect != null && !redirect.isBlank() && redirect.startsWith("/")) {
                     response.sendRedirect(redirect);
                     return;
+                }
+                var userOpt = userService.findByEmailAddress(authentication.getName());
+                if (userOpt.isPresent()) {
+                    var user = userOpt.get();
+                    if (user.getFirstName() == null || user.getFirstName().isBlank()
+                            || user.getLastName() == null || user.getLastName().isBlank()
+                            || user.getNickname() == null || user.getNickname().isBlank()) {
+                        response.sendRedirect("/profile/setup");
+                        return;
+                    }
                 }
                 response.sendRedirect("/");
             }

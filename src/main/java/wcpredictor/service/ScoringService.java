@@ -107,9 +107,14 @@ public class ScoringService {
     }
 
     public List<UserScoreSummary> getLeaderboard() {
+        return getLeaderboard(Set.of());
+    }
+
+    public List<UserScoreSummary> getLeaderboard(Set<UUID> gameUserIds) {
         List<User> users = userRepository.findAll();
         return users.stream()
                 .filter(u -> !u.isAdmin())
+                .filter(u -> gameUserIds.isEmpty() || gameUserIds.contains(u.getId()))
                 .map(u -> {
                     UserScoreSummary s = new UserScoreSummary();
                     s.setUserId(u.getId());

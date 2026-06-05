@@ -32,7 +32,7 @@ public class UserRegistrationService {
     @Value("${app.base-url}")
     private String baseUrl;
 
-    @Value("${spring.mail.properties.mail.smtp.from}")
+    @Value("${spring.mail.properties.mail.smtp.from:noreply@example.com}")
     private String fromAddress;
 
     public UserRegistrationService(UserRepository userRepository,

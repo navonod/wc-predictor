@@ -19,7 +19,6 @@
 
                 <div th:if="${param.error}" class="alert alert-danger">Invalid email or password.</div>
                 <div th:if="${param.logout}" class="alert alert-info">You have been logged out.</div>
-                <div th:if="${param.registered}" class="alert alert-success">Registration successful! Check your email to confirm your account, then log in.</div>
                 <div th:if="${param.confirmed}" class="alert alert-success">Account confirmed! You can now log in.</div>
 
                 <div class="card shadow">

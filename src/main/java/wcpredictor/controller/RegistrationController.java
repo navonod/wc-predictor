@@ -26,12 +26,17 @@ public class RegistrationController {
                            Model model) {
         try {
             registrationService.register(email, password, confirmPassword);
-            return "redirect:/login?registered";
+            return "redirect:/register/success";
         } catch (Exception e) {
             model.addAttribute("message", e.getMessage());
             model.addAttribute("error", true);
         }
         return "register";
+    }
+
+    @GetMapping("/register/success")
+    public String registerSuccess() {
+        return "register-success";
     }
 
     @GetMapping("/confirm")

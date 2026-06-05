@@ -17,12 +17,17 @@ public class AdminController {
     private final TeamService teamService;
     private final MatchService matchService;
     private final SettingService settingService;
+    private final GameService gameService;
+    private final UserService userService;
 
     public AdminController(TeamService teamService, MatchService matchService,
-                            SettingService settingService) {
+                            SettingService settingService, GameService gameService,
+                            UserService userService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
+        this.gameService = gameService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -112,5 +117,50 @@ public class AdminController {
             }
         }
         return "redirect:/admin/settings?updated";
+    }
+
+    @GetMapping("/games")
+    public String manageGames(Model model) {
+        model.addAttribute("games", gameService.findAll());
+        return "admin/games";
+    }
+
+    @PostMapping("/games/create")
+    public String createGame(@RequestParam String name, @RequestParam String description) {
+        gameService.create(name, description);
+        return "redirect:/admin/games";
+    }
+
+    @PostMapping("/games/delete")
+    public String deleteGame(@RequestParam UUID id) {
+        gameService.delete(id);
+        return "redirect:/admin/games";
+    }
+
+    @GetMapping("/games/{id}/users")
+    public String manageGameUsers(@PathVariable UUID id, Model model) {
+        var game = gameService.findById(id).orElseThrow();
+        var allUsers = userService.findAll();
+        var gameUserIds = game.getUsers().stream().map(User::getId).collect(java.util.stream.Collectors.toSet());
+        model.addAttribute("game", game);
+        model.addAttribute("allUsers", allUsers);
+        model.addAttribute("gameUserIds", gameUserIds);
+        return "admin/game-users";
+    }
+
+    @PostMapping("/games/{id}/users/add")
+    public String addUserToGame(@PathVariable UUID id, @RequestParam UUID userId) {
+        var game = gameService.findById(id).orElseThrow();
+        var user = userService.findById(userId).orElseThrow();
+        gameService.addUser(game, user);
+        return "redirect:/admin/games/" + id + "/users";
+    }
+
+    @PostMapping("/games/{id}/users/remove")
+    public String removeUserFromGame(@PathVariable UUID id, @RequestParam UUID userId) {
+        var game = gameService.findById(id).orElseThrow();
+        var user = userService.findById(userId).orElseThrow();
+        gameService.removeUser(game, user);
+        return "redirect:/admin/games/" + id + "/users";
     }
 }

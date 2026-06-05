@@ -135,7 +135,7 @@ public class DataLoader {
     @Bean
     public CommandLineRunner loadData(TeamRepository teamRepo, MatchRepository matchRepo,
                                        SettingRepository settingRepo, UserRepository userRepo,
-                                       PasswordEncoder passwordEncoder) {
+                                       PasswordEncoder passwordEncoder, GameRepository gameRepo) {
         return args -> {
             if (teamRepo.count() > 0) {
                 log.info("Teams already loaded, skipping seed.");
@@ -206,6 +206,8 @@ public class DataLoader {
                 User admin = new User();
                 admin.setEmailAddress("wcpredictor@thatcher.africa");
                 admin.setFirstName("Admin");
+                admin.setLastName("");
+                admin.setNickname("Admin");
                 admin.setEncryptedPassword(passwordEncoder.encode("password"));
                 admin.setAdmin(true);
                 admin.setConfirmed(true);
@@ -219,6 +221,18 @@ public class DataLoader {
                         log.info("Marked existing user {} as confirmed", user.getEmailAddress());
                     }
                 }
+            }
+
+            if (gameRepo.count() == 0) {
+                log.info("Creating default game...");
+                Game game = new Game();
+                game.setName("Default Game");
+                game.setDescription("The main 2026 World Cup predictor competition");
+                game.setCreatedAt(java.time.Instant.now());
+                var adminUser = userRepo.findByEmailAddress("wcpredictor@thatcher.africa");
+                adminUser.ifPresent(u -> game.getUsers().add(u));
+                gameRepo.save(game);
+                log.info("Default game created with admin user.");
             }
         };
     }

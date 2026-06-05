@@ -1,13 +1,15 @@
 package wcpredictor.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -28,4 +30,7 @@ public class User {
 
     private String passwordResetToken;
     private Instant passwordResetTokenExpiry;
+
+    @ManyToMany(mappedBy = "users")
+    private List<Game> games = new ArrayList<>();
 }
