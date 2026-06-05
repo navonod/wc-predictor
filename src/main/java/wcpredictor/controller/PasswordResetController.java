@@ -1,5 +1,11 @@
 package wcpredictor.controller;
 
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,12 +20,23 @@ import java.util.UUID;
 @Controller
 public class PasswordResetController {
 
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetController.class);
+
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JavaMailSender mailSender;
 
-    public PasswordResetController(UserService userService, PasswordEncoder passwordEncoder) {
+    @Value("${app.base-url:http://localhost:8090}")
+    private String baseUrl;
+
+    @Value("${spring.mail.properties.mail.smtp.from:noreply@example.com}")
+    private String fromAddress;
+
+    public PasswordResetController(UserService userService, PasswordEncoder passwordEncoder,
+                                    JavaMailSender mailSender) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.mailSender = mailSender;
     }
 
     @GetMapping("/forgot-password")
@@ -35,13 +52,30 @@ public class PasswordResetController {
             user.setPasswordResetToken(UUID.randomUUID().toString());
             user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
             userService.save(user);
-            model.addAttribute("message", "Password reset link: /reset-password?token=" + user.getPasswordResetToken());
-            model.addAttribute("success", true);
-        } else {
-            model.addAttribute("message", "If that email exists, a reset link has been generated.");
-            model.addAttribute("success", true);
+            sendResetEmail(user);
         }
+        model.addAttribute("message", "If that email is registered, a password reset link has been sent.");
+        model.addAttribute("success", true);
         return "forgot-password";
+    }
+
+    private void sendResetEmail(User user) {
+        String link = baseUrl + "/reset-password?token=" + user.getPasswordResetToken();
+        log.info("Password reset link: {}", link);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(fromAddress);
+            helper.setTo(user.getEmailAddress());
+            helper.setSubject("Reset your WC Predictor password");
+            helper.setText("<p>Click the link below to reset your password (expires in 1 hour):</p>"
+                    + "<p><a href=\"" + link + "\">" + link + "</a></p>", true);
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", user.getEmailAddress());
+        } catch (Exception e) {
+            log.warn("Failed to send password reset email: {}", e.getMessage());
+            log.info("Password reset link (use this): {}", link);
+        }
     }
 
     @GetMapping("/reset-password")

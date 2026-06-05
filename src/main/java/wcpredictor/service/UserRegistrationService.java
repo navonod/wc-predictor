@@ -78,7 +78,7 @@ public class UserRegistrationService {
 
     private void sendConfirmationEmail(String email, String token) {
         String link = baseUrl + "/confirm?token=" + token;
-        System.out.println("\n=== CONFIRMATION LINK ===\n" + link + "\n========================\n");
+        log.info("Confirmation link: {}", link);
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
