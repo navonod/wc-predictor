@@ -132,6 +132,11 @@
                     checkDirty();
                 });
             }
+
+            form.addEventListener('submit', () => {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+            });
         });
     </script>
 </body>
