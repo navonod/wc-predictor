@@ -26,8 +26,7 @@ public class RegistrationController {
                            Model model) {
         try {
             registrationService.register(email, password, confirmPassword);
-            model.addAttribute("message", "Registration successful! Check your email to confirm your account.");
-            model.addAttribute("success", true);
+            return "redirect:/login?registered";
         } catch (Exception e) {
             model.addAttribute("message", e.getMessage());
             model.addAttribute("error", true);
