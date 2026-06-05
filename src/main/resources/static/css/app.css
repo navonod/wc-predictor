@@ -1,6 +1,8 @@
 body {
-    background: url('/images/bg.jpg') no-repeat center center fixed;
-    background-size: cover;
+    background:
+        url('/images/bg.png') no-repeat left bottom fixed,
+        linear-gradient(to bottom, #87CEEB 0%, #ffffff 100%) fixed;
+    background-size: auto, cover;
     min-height: 100vh;
     margin: 0;
 }
@@ -35,7 +37,7 @@ body {
 }
 
 .nav-link.active {
-    color: #212529 !important;
+    color: #ffd700 !important;
 }
 
 .btn-outline-secondary {
