@@ -10,6 +10,12 @@ services:
       APP_BASE_URL: https://wc.thatcher.africa
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8090/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 40s
 
 volumes:
   wcdata:
