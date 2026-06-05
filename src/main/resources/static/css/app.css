@@ -1,10 +1,23 @@
 body {
-    background:
-        url('/images/bg.png') no-repeat left bottom fixed,
-        linear-gradient(to bottom, #87CEEB 0%, #ffffff 100%) fixed;
-    background-size: auto, cover;
+    background-color: #ffffff;
+    background-image: url('/images/bg.png');
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-attachment: fixed;
+    background-size: auto;
     min-height: 100vh;
     margin: 0;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -2;
+    background: linear-gradient(to bottom, #87CEEB 0%, #ffffff 100%);
 }
 
 .navbar {
