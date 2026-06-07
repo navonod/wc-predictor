@@ -254,6 +254,19 @@ public class DataLoader {
                 if (match.getPredictionsLockTime() == null && match.getMatchDate() != null) {
                     changed = true;
                 }
+                if (match.getVenue() != null && !match.getVenue().isEmpty()) {
+                    for (Object[] m : GROUP_MATCHES) {
+                        if ((int) m[0] == match.getMatchNumber()) {
+                            String rawDate = (String) m[4];
+                            LocalDateTime seedDate = LocalDateTime.parse(rawDate);
+                            if (match.getMatchDate().equals(seedDate)) {
+                                match.setMatchDate(toUtc(seedDate, match.getVenue()));
+                                changed = true;
+                            }
+                            break;
+                        }
+                    }
+                }
                 if (changed) matchRepo.save(match);
             }
 
