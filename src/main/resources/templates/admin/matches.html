@@ -28,11 +28,11 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 th:text="${entry.key.description}"></h5>
                 <div>
-                    <form method="post" action="/admin/matches/lock-round" class="d-inline">
+                    <form method="post" th:action="@{/admin/matches/lock-round}" class="d-inline">
                         <input type="hidden" name="roundType" th:value="${entry.key.name()}">
                         <button type="submit" class="btn btn-warning btn-sm">Lock All</button>
                     </form>
-                    <form method="post" action="/admin/matches/unlock-round" class="d-inline">
+                    <form method="post" th:action="@{/admin/matches/unlock-round}" class="d-inline">
                         <input type="hidden" name="roundType" th:value="${entry.key.name()}">
                         <button type="submit" class="btn btn-outline-success btn-sm">Unlock All</button>
                     </form>
@@ -75,7 +75,7 @@
                                 <div class="modal fade" th:id="'resultModal' + ${match.id}" tabindex="-1">
                                     <div class="modal-dialog modal-sm">
                                         <div class="modal-content">
-                                            <form method="post" action="/admin/matches/set-result">
+                                            <form method="post" th:action="@{/admin/matches/set-result}">
                                                 <input type="hidden" name="matchId" th:value="${match.id}">
                                                 <div class="modal-header">
                                                     <h5 class="modal-title" th:text="'Match #' + ${match.matchNumber}"></h5>

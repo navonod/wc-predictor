@@ -19,15 +19,17 @@ public class AdminController {
     private final SettingService settingService;
     private final GameService gameService;
     private final UserService userService;
+    private final TournamentService tournamentService;
 
     public AdminController(TeamService teamService, MatchService matchService,
                             SettingService settingService, GameService gameService,
-                            UserService userService) {
+                            UserService userService, TournamentService tournamentService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
         this.gameService = gameService;
         this.userService = userService;
+        this.tournamentService = tournamentService;
     }
 
     @GetMapping
@@ -162,5 +164,23 @@ public class AdminController {
         var user = userService.findById(userId).orElseThrow();
         gameService.removeUser(game, user);
         return "redirect:/admin/games/" + id + "/users";
+    }
+
+    @GetMapping("/tournaments")
+    public String manageTournaments(Model model) {
+        model.addAttribute("tournaments", tournamentService.findAll());
+        return "admin/tournaments";
+    }
+
+    @PostMapping("/tournaments/create")
+    public String createTournament(@RequestParam String name, @RequestParam String description) {
+        tournamentService.create(name, description);
+        return "redirect:/admin/tournaments";
+    }
+
+    @PostMapping("/tournaments/delete")
+    public String deleteTournament(@RequestParam UUID id) {
+        tournamentService.delete(id);
+        return "redirect:/admin/tournaments";
     }
 }

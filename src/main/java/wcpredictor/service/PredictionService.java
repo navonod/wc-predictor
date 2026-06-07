@@ -36,8 +36,8 @@ public class PredictionService {
     @Transactional
     public void saveMatchPrediction(User user, UUID matchId, Integer team1Score, Integer team2Score) {
         Match match = matchRepository.findById(matchId).orElseThrow();
-        if (match.isPredictionsLocked()) {
-            throw new IllegalStateException("Predictions are locked for this match.");
+        if (match.isLocked()) {
+            throw new IllegalStateException("Predictions are closed for this match.");
         }
         MatchPrediction prediction = matchPredictionRepo.findByUserIdAndMatchId(user.getId(), matchId)
                 .orElse(new MatchPrediction());

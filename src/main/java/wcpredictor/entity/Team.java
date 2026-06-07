@@ -12,7 +12,7 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(length = 4)
@@ -20,4 +20,8 @@ public class Team {
 
     @Column(length = 1)
     private String groupLetter;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tournament_id")
+    private Tournament tournament;
 }

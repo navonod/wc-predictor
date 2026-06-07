@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Configuration
@@ -132,13 +134,60 @@ public class DataLoader {
         {72, 'L', "Ivory Coast", "DR Congo", "2026-07-03T20:00", "AT&T Stadium, Dallas"},
     };
 
+    private static final Map<String, String> VENUE_TIMEZONE = Map.ofEntries(
+        Map.entry("Mexico City", "America/Mexico_City"),
+        Map.entry("Zapopan", "America/Mexico_City"),
+        Map.entry("Guadalupe", "America/Mexico_City"),
+        Map.entry("Toronto", "America/Toronto"),
+        Map.entry("Vancouver", "America/Vancouver"),
+        Map.entry("Atlanta", "America/New_York"),
+        Map.entry("Santa Clara", "America/Los_Angeles"),
+        Map.entry("Los Angeles", "America/Los_Angeles"),
+        Map.entry("Houston", "America/Chicago"),
+        Map.entry("Philadelphia", "America/New_York"),
+        Map.entry("Kansas City", "America/Chicago"),
+        Map.entry("Dallas", "America/Chicago"),
+        Map.entry("Boston", "America/New_York"),
+        Map.entry("Seattle", "America/Los_Angeles"),
+        Map.entry("East Rutherford", "America/New_York"),
+        Map.entry("Miami", "America/New_York")
+    );
+
+    private static LocalDateTime toUtc(LocalDateTime localTime, String venue) {
+        for (var entry : VENUE_TIMEZONE.entrySet()) {
+            if (venue.contains(entry.getKey())) {
+                return ZonedDateTime.of(localTime, ZoneId.of(entry.getValue()))
+                        .withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+            }
+        }
+        return localTime;
+    }
+
     @Bean
     public CommandLineRunner loadData(TeamRepository teamRepo, MatchRepository matchRepo,
                                        SettingRepository settingRepo, UserRepository userRepo,
-                                       PasswordEncoder passwordEncoder, GameRepository gameRepo) {
+                                       PasswordEncoder passwordEncoder, GameRepository gameRepo,
+                                       TournamentRepository tournamentRepo) {
         return args -> {
+            Tournament tournament = tournamentRepo.findAll().stream().findFirst().orElse(null);
+            if (tournament == null) {
+                tournament = new Tournament();
+                tournament.setName("2026 FIFA World Cup");
+                tournament.setDescription("Canada, Mexico, United States");
+                tournament.setCreatedAt(java.time.Instant.now());
+                tournament = tournamentRepo.save(tournament);
+                log.info("Created default tournament: {}", tournament.getName());
+            }
+
             if (teamRepo.count() > 0) {
                 log.info("Teams already loaded, skipping seed.");
+                for (Team team : teamRepo.findAll()) {
+                    if (team.getTournament() == null) {
+                        team.setTournament(tournament);
+                        teamRepo.save(team);
+                        log.info("Assigned team {} to tournament {}", team.getName(), tournament.getName());
+                    }
+                }
             } else {
                 log.info("Seeding teams and matches...");
                 Map<String, Team> teamMap = new HashMap<>();
@@ -150,11 +199,15 @@ public class DataLoader {
                         team.setName(teamName);
                         team.setGroupLetter(String.valueOf(group));
                         team.setFifaCode(FIFACODE_MAP.get(teamName));
+                        team.setTournament(tournament);
                         teamMap.put(teamName, teamRepo.save(team));
                     }
                 }
 
                 int md1Count = 0, md2Count = 0, md3Count = 0;
+                Map<RoundType, LocalDateTime> earliestKickoff = new HashMap<>();
+                List<Match> seededMatches = new ArrayList<>();
+
                 for (Object[] m : GROUP_MATCHES) {
                     int matchNum = (int) m[0];
                     char group = (char) m[1];
@@ -168,17 +221,55 @@ public class DataLoader {
                     else if (matchNum <= 48) { round = RoundType.GROUP_MD2; md2Count++; }
                     else { round = RoundType.GROUP_MD3; md3Count++; }
 
+                    LocalDateTime kickoff = toUtc(LocalDateTime.parse(dateStr), venue);
+                    if (!earliestKickoff.containsKey(round) || kickoff.isBefore(earliestKickoff.get(round))) {
+                        earliestKickoff.put(round, kickoff);
+                    }
+
                     Match match = new Match();
                     match.setMatchNumber(matchNum);
                     match.setRound(round);
                     match.setGroupLetter(String.valueOf(group));
                     match.setTeam1(teamMap.get(t1Name));
                     match.setTeam2(teamMap.get(t2Name));
-                    match.setMatchDate(LocalDateTime.parse(dateStr));
+                    match.setMatchDate(kickoff);
                     match.setVenue(venue);
+                    match.setTournament(tournament);
+                    seededMatches.add(match);
+                }
+
+                for (Match match : seededMatches) {
+                    match.setPredictionsLockTime(earliestKickoff.get(match.getRound()));
                     matchRepo.save(match);
                 }
                 log.info("Seeded 48 teams, {} group matches (MD1: {}, MD2: {}, MD3: {})", GROUP_MATCHES.length, md1Count, md2Count, md3Count);
+            }
+
+            for (Match match : matchRepo.findAll()) {
+                boolean changed = false;
+                if (match.getTournament() == null) {
+                    match.setTournament(tournament);
+                    changed = true;
+                }
+                if (match.getPredictionsLockTime() == null && match.getMatchDate() != null) {
+                    changed = true;
+                }
+                if (changed) matchRepo.save(match);
+            }
+
+            for (Match match : matchRepo.findAll()) {
+                var round = match.getRound();
+                if (round != null) {
+                    var earliest = matchRepo.findByRoundOrderByMatchDateAsc(round).stream()
+                            .map(Match::getMatchDate)
+                            .filter(Objects::nonNull)
+                            .min(Comparator.naturalOrder())
+                            .orElse(null);
+                    if (earliest != null && !earliest.equals(match.getPredictionsLockTime())) {
+                        match.setPredictionsLockTime(earliest);
+                        matchRepo.save(match);
+                    }
+                }
             }
 
             if (settingRepo.count() == 0) {

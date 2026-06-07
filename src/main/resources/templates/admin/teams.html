@@ -27,7 +27,7 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header"><h5 class="mb-0">Add Team</h5></div>
             <div class="card-body">
-                <form method="post" action="/admin/teams/add" class="row g-3">
+                <form method="post" th:action="@{/admin/teams/add}" class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label">Team Name</label>
                         <input type="text" class="form-control" name="name" required>
@@ -60,7 +60,7 @@
                                 <span class="badge bg-secondary ms-2" th:text="'Group ' + ${team.groupLetter}"></span>
                                 <small class="text-muted ms-2" th:text="${team.fifaCode}"></small>
                             </div>
-                            <form method="post" action="/admin/teams/delete" onsubmit="return confirm('Delete this team?')">
+                            <form method="post" th:action="@{/admin/teams/delete}" onsubmit="return confirm('Delete this team?')">
                                 <input type="hidden" name="id" th:value="${team.id}">
                                 <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
                             </form>

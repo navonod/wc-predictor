@@ -3,6 +3,7 @@ package wcpredictor.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -41,4 +42,16 @@ public class Match {
 
     @Column(nullable = false)
     private boolean predictionsLocked = false;
+
+    private LocalDateTime predictionsLockTime;
+
+    public boolean isLocked() {
+        if (predictionsLocked) return true;
+        if (predictionsLockTime != null && LocalDateTime.now(ZoneOffset.UTC).isAfter(predictionsLockTime)) return true;
+        return false;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tournament_id")
+    private Tournament tournament;
 }

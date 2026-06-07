@@ -26,7 +26,7 @@
 
         <div th:if="${param.updated}" class="alert alert-success">Settings updated successfully.</div>
 
-        <form method="post" action="/admin/settings">
+        <form method="post" th:action="@{/admin/settings}">
             <div class="card shadow-sm mb-4">
                 <div class="card-header"><h5 class="mb-0">Match Score Prediction Points</h5></div>
                 <div class="card-body">

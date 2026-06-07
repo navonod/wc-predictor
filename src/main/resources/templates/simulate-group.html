@@ -34,6 +34,10 @@
             <h3 class="mb-0">Group <span th:text="${group}"></span></h3>
         </div>
 
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" th:text="${error}">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <ul class="nav nav-tabs mb-4">
             <li class="nav-item" th:each="r : ${rounds}">
                 <a class="nav-link" th:classappend="${selectedRound == r} ? 'active'"
@@ -59,8 +63,10 @@
                                 <input type="hidden" name="matchId" th:value="${match.id}">
                                 <input type="hidden" name="redirect"
                                        th:value="@{/simulate/group/{group}(group=${group}, round=${selectedRound})}">
-                                <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
-                                    <span class="team-name text-end fw-bold" th:text="${match.team1.name}"></span>
+                                <div>
+                                    <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
+                                    <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
+                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.fifaCode}"></span>
                                     <input type="number" class="form-control score-input"
                                            name="team1Score" min="0" max="10"
                                            th:value="${scores[match.id] != null ? scores[match.id][0] : ''}"
@@ -70,15 +76,19 @@
                                            name="team2Score" min="0" max="10"
                                            th:value="${scores[match.id] != null ? scores[match.id][1] : ''}"
                                            th:attr="data-initial=${scores[match.id] != null ? scores[match.id][1] : ''}">
-                                    <span class="team-name fw-bold" th:text="${match.team2.name}"></span>
-                                    <button type="button" class="btn btn-sm border-0 fs-5 px-2 dice-btn"
-                                            title="Randomize this match">
-                                        <i class="bi bi-dice-6"></i>
-                                    </button>
-                                    <button type="submit" class="btn btn-primary btn-sm ms-1 save-btn" disabled
-                                            title="Modify scores to enable save">
-                                        <i class="bi bi-check-lg"></i> Save
-                                    </button>
+                                    <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
+                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.fifaCode}"></span>
+                                    </div>
+                                    <div class="text-end mt-1">
+                                        <button type="button" class="btn btn-sm border-0 fs-5 px-2 dice-btn"
+                                                title="Randomize this match">
+                                            <i class="bi bi-dice-6"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary btn-sm ms-1 save-btn" disabled
+                                                title="Modify scores to enable save">
+                                            <i class="bi bi-check-lg"></i> Save
+                                        </button>
+                                    </div>
                                 </div>
                             </form>
                         </div>

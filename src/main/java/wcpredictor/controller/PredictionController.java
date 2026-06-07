@@ -122,9 +122,15 @@ public class PredictionController {
                                             @RequestParam int team1Score,
                                             @RequestParam int team2Score,
                                             @RequestParam String redirect,
-                                            Principal principal) {
+                                            Principal principal,
+                                            RedirectAttributes ra) {
         User user = getCurrentUser(principal);
-        predictionService.saveMatchPrediction(user, matchId, team1Score, team2Score);
+        try {
+            predictionService.saveMatchPrediction(user, matchId, team1Score, team2Score);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:" + redirect;
+        }
         return "redirect:" + redirect;
     }
 }
