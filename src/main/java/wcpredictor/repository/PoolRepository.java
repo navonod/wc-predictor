@@ -1,8 +1,8 @@
 package wcpredictor.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import wcpredictor.entity.Game;
+import wcpredictor.entity.Pool;
 import java.util.UUID;
 
-public interface GameRepository extends JpaRepository<Game, UUID> {
+public interface PoolRepository extends JpaRepository<Pool, UUID> {
 }

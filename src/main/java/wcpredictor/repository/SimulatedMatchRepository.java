@@ -13,5 +13,6 @@ public interface SimulatedMatchRepository extends JpaRepository<SimulatedMatch, 
     List<SimulatedMatch> findByUser(User user);
     List<SimulatedMatch> findByUserId(UUID userId);
     Optional<SimulatedMatch> findByUserAndMatch(User user, Match match);
+    List<SimulatedMatch> findByMatchId(UUID matchId);
     void deleteByUser(User user);
 }

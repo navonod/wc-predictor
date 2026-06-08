@@ -86,6 +86,36 @@ public class PredictionService {
 
     @Transactional
     public void saveGroupAdvancementPredictions(User user, List<UUID> advancingTeamIds) {
+        Map<Character, Integer> groupCounts = new LinkedHashMap<>();
+        for (char g = 'A'; g <= 'L'; g++) {
+            groupCounts.put(g, 0);
+        }
+
+        for (UUID teamId : advancingTeamIds) {
+            var team = teamService.findById(teamId);
+            if (team.isPresent() && team.get().getGroupLetter() != null) {
+                char g = team.get().getGroupLetter().charAt(0);
+                groupCounts.merge(g, 1, Integer::sum);
+            }
+        }
+
+        for (var entry : groupCounts.entrySet()) {
+            if (entry.getValue() > 3) {
+                throw new IllegalArgumentException("Group " + entry.getKey() + " has " + entry.getValue()
+                        + " teams selected. Maximum is 3 per group.");
+            }
+            if (entry.getValue() < 2) {
+                throw new IllegalArgumentException("Group " + entry.getKey() + " has " + entry.getValue()
+                        + " teams selected. At least 2 per group required.");
+            }
+        }
+
+        long groupsWith3 = groupCounts.values().stream().filter(c -> c == 3).count();
+        if (groupsWith3 > 8) {
+            throw new IllegalArgumentException(groupsWith3
+                    + " groups have 3 teams selected. Only 8 groups may have 3 teams (the 8 best third-place advancers).");
+        }
+
         groupAdvancementPredictionRepo.deleteByUserId(user.getId());
         Set<UUID> top2Ids = new HashSet<>(advancingTeamIds.subList(0, Math.min(24, advancingTeamIds.size())));
         Set<UUID> thirdIds = new HashSet<>();

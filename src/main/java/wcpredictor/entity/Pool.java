@@ -7,10 +7,10 @@ import java.time.Instant;
 import java.util.*;
 
 @Entity
-@Table(name = "games")
+@Table(name = "pools")
 @Getter
 @Setter
-public class Game {
+public class Pool {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -25,8 +25,8 @@ public class Game {
 
     @ManyToMany
     @JoinTable(
-        name = "game_users",
-        joinColumns = @JoinColumn(name = "game_id"),
+        name = "pool_users",
+        joinColumns = @JoinColumn(name = "pool_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private List<User> users = new ArrayList<>();

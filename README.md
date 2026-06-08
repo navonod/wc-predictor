@@ -36,3 +36,48 @@ The app sends account confirmation and password-reset emails. Production uses Se
 - `application-prod.properties` configures Spring Mail to use `smtp.sendgrid.net:587` with TLS
 - The API key is injected into the container via `docker-compose.yml` → `SENDGRID_API_KEY` env var
 - Spring's `@Value("${app.base-url}")` in `UserRegistrationService` builds clickable confirmation links
+
+## Tournaments
+
+The app supports multiple tournaments. Each tournament has its own match schedule via a CSV import.
+
+### CSV schedule format
+
+Create a `*-schedule.csv` file with these columns:
+
+```
+Match No,Date/Time in UTC,Estimated Time,Team 1,Team 2,Venue,Local Time,Timezone
+1,2026-06-11 19:00,FALSE,Mexico,South Africa,Mexico City Stadium,2026-06-11 13:00,UTC-6
+...
+104,2026-07-19 19:00,FALSE,Winner Match 101,Winner Match 102,MetLife Stadium,2026-07-19 15:00,UTC-4
+```
+
+- **Match No** — 1-104 (72 group + 32 knockout)
+- **Date/Time in UTC** — format `YYYY-MM-DD HH:MM` in UTC
+- **Estimated Time** — `TRUE` if kickoff time is not yet confirmed
+- **Team 1 / Team 2** — team names or placeholder (e.g. `Winner Group A`)
+- **Venue** — stadium name
+- **Local Time / Timezone** — informational, not used by the import
+
+### Adding a new tournament
+
+**Method 1 — Auto-import on first startup**
+
+1. Name your CSV file with underscores for spaces, e.g. `FIFA_World_Cup_2030-schedule.csv`
+2. Place it in `src/main/resources/data/`
+3. On the next app restart, the DataLoader scans the classpath for `*-schedule.csv` files. For each one, it:
+   - Creates a new Tournament entity named from the filename (underscores → spaces)
+   - Imports all 104 matches with UTC dates, venues, and round types
+   - Skips if the tournament already exists
+4. Knockout matches (73-104) are created with `predictionsLocked = true` and null teams for admin to fill later
+
+**Method 2 — Admin UI import**
+
+1. Log in as admin → **Manage Tournaments**
+2. Click **Import Schedule** next to any tournament
+3. Upload a `*-schedule.csv` file
+4. Existing match dates, venues, and estimated flags are overwritten. Missing knockout matches are created.
+
+### Timezone handling
+
+All match dates are stored in UTC. The CSV's `Date/Time in UTC` column is parsed directly — no timezone conversion needed. The `matchDateEstimated` flag is set per-match from the CSV's `Estimated Time` column. Predictions lock at the earliest kickoff time per round type (Matchday 1, 2, 3, or knockout round).

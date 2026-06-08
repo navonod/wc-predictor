@@ -15,4 +15,6 @@ public interface MatchRepository extends JpaRepository<Match, UUID> {
 
     @Query("SELECT m.round FROM Match m WHERE m.predictionsLocked = false GROUP BY m.round ORDER BY MIN(m.matchDate) ASC")
     List<RoundType> findOpenRounds();
+
+    List<Match> findByTournamentId(UUID tournamentId);
 }

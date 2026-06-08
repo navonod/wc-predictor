@@ -23,9 +23,9 @@
     </nav>
 
     <div class="container">
-        <a href="/admin/games" class="btn btn-outline-secondary btn-sm mb-3"><i class="bi bi-arrow-left"></i> Back to Games</a>
+        <a href="/admin/pools" class="btn btn-outline-secondary btn-sm mb-3"><i class="bi bi-arrow-left"></i> Back to Pools</a>
 
-        <h3 class="mb-3">Game: <span th:text="${game.name}"></span></h3>
+        <h3 class="mb-3">Pool: <span th:text="${pool.name}"></span></h3>
 
         <div class="row">
             <div class="col-md-6">
@@ -35,17 +35,17 @@
                         <table class="table table-sm mb-0">
                             <thead><tr><th>Name</th><th>Email</th><th></th></tr></thead>
                             <tbody>
-                                <tr th:each="u : ${game.users}">
+                                <tr th:each="u : ${pool.users}">
                                     <td th:text="${u.nickname != null && !u.nickname.isBlank() ? u.nickname : (u.firstName != null ? u.firstName + ' ' + u.lastName : u.emailAddress)}"></td>
                                     <td class="text-muted small" th:text="${u.emailAddress}"></td>
                                     <td>
-                                        <form method="post" th:action="@{/admin/games/{id}/users/remove(id=${game.id})}" class="d-inline">
+                                        <form method="post" th:action="@{/admin/pools/{id}/users/remove(id=${pool.id})}" class="d-inline">
                                             <input type="hidden" name="userId" th:value="${u.id}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                                         </form>
                                     </td>
                                 </tr>
-                                <tr th:if="${#lists.isEmpty(game.users)}">
+                                <tr th:if="${#lists.isEmpty(pool.users)}">
                                     <td colspan="3" class="text-muted text-center">No members yet.</td>
                                 </tr>
                             </tbody>
@@ -61,11 +61,11 @@
                         <table class="table table-sm mb-0">
                             <thead><tr><th>Name</th><th>Email</th><th></th></tr></thead>
                             <tbody>
-                                <tr th:each="u : ${allUsers}" th:if="${!gameUserIds.contains(u.id)}">
+                                <tr th:each="u : ${allUsers}" th:if="${!poolUserIds.contains(u.id)}">
                                     <td th:text="${u.nickname != null && !u.nickname.isBlank() ? u.nickname : (u.firstName != null ? u.firstName + ' ' + u.lastName : u.emailAddress)}"></td>
                                     <td class="text-muted small" th:text="${u.emailAddress}"></td>
                                     <td>
-                                        <form method="post" th:action="@{/admin/games/{id}/users/add(id=${game.id})}" class="d-inline">
+                                        <form method="post" th:action="@{/admin/pools/{id}/users/add(id=${pool.id})}" class="d-inline">
                                             <input type="hidden" name="userId" th:value="${u.id}">
                                             <button type="submit" class="btn btn-sm btn-outline-success">Add</button>
                                         </form>

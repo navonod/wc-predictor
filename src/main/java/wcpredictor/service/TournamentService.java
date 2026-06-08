@@ -21,11 +21,20 @@ public class TournamentService {
 
     private final TournamentRepository tournamentRepository;
     private final MatchRepository matchRepository;
+    private final MatchPredictionRepository matchPredictionRepo;
+    private final SimulatedMatchRepository simulatedMatchRepo;
+    private final TeamRepository teamRepository;
 
     public TournamentService(TournamentRepository tournamentRepository,
-                              MatchRepository matchRepository) {
+                              MatchRepository matchRepository,
+                              MatchPredictionRepository matchPredictionRepo,
+                              SimulatedMatchRepository simulatedMatchRepo,
+                              TeamRepository teamRepository) {
         this.tournamentRepository = tournamentRepository;
         this.matchRepository = matchRepository;
+        this.matchPredictionRepo = matchPredictionRepo;
+        this.simulatedMatchRepo = simulatedMatchRepo;
+        this.teamRepository = teamRepository;
     }
 
     public List<Tournament> findAll() {
@@ -47,7 +56,30 @@ public class TournamentService {
 
     @Transactional
     public void delete(UUID id) {
-        tournamentRepository.deleteById(id);
+        Tournament tournament = tournamentRepository.findById(id).orElseThrow();
+        List<Match> matches = matchRepository.findByTournamentId(id);
+
+        for (Match match : matches) {
+            if (!matchPredictionRepo.findByMatchId(match.getId()).isEmpty()) {
+                throw new IllegalStateException(
+                        "Cannot delete tournament: match predictions exist. Clear them first.");
+            }
+        }
+
+        for (Match match : matches) {
+            matchPredictionRepo.findByMatchId(match.getId())
+                    .forEach(p -> matchPredictionRepo.delete(p));
+            simulatedMatchRepo.findByMatchId(match.getId())
+                    .forEach(s -> simulatedMatchRepo.delete(s));
+            matchRepository.delete(match);
+        }
+
+        List<Team> teams = teamRepository.findByTournamentId(id);
+        teamRepository.deleteAll(teams);
+
+        tournamentRepository.delete(tournament);
+        log.info("Deleted tournament '{}' with {} matches and {} teams",
+                tournament.getName(), matches.size(), teams.size());
     }
 
     @Transactional

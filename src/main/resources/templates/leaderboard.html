@@ -30,12 +30,12 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-trophy"></i> Leaderboard</h2>
-            <form method="get" action="/leaderboard" class="d-flex gap-2" th:if="${!games.isEmpty()}">
-                <select name="gameId" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+            <form method="get" action="/leaderboard" class="d-flex gap-2" th:if="${!pools.isEmpty()}">
+                <select name="poolId" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
                     <option value="">All Players</option>
-                    <option th:each="g : ${games}" th:value="${g.id}"
-                            th:text="${g.name}"
-                            th:selected="${selectedGame != null && selectedGame.id == g.id}"></option>
+                    <option th:each="p : ${pools}" th:value="${p.id}"
+                            th:text="${p.name}"
+                            th:selected="${selectedPool != null && selectedPool.id == p.id}"></option>
                 </select>
             </form>
         </div>

@@ -1,0 +1,1 @@
+docker compose exec -T wcpredictor sh -c "apt-get update -qq && apt-get install -y -qq sqlite3 > /dev/null 2>&1 && sqlite3 /app/data/wcpredictor.db \"INSERT INTO pools SELECT * FROM games; INSERT INTO pool_users SELECT * FROM game_users; DROP TABLE game_users; DROP TABLE games;\""

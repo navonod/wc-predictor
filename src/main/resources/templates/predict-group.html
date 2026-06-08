@@ -29,16 +29,20 @@
         <p class="text-muted">Select 32 teams you think will advance: the top 2 from each group (24) + 8 best third-place teams.</p>
         <p class="text-muted"><strong>2 points per correct advancing team.</strong></p>
 
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" th:text="${error}">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <form method="post" th:action>
             <div class="row">
                 <div class="col-md-6" th:each="entry : ${groups}">
-                    <div class="card shadow-sm mb-3">
+                    <div class="card shadow-sm mb-3" th:attr="data-group=${entry.key}">
                         <div class="card-header">
                             <strong>Group <span th:text="${entry.key}"></span></strong>
                         </div>
                         <div class="card-body">
                             <div class="form-check" th:each="team : ${entry.value}">
-                                <input class="form-check-input" type="checkbox" name="teamId"
+                                <input class="form-check-input group-check" type="checkbox" name="teamId"
                                        th:value="${team.id}"
                                        th:checked="${predictedTeamIds.contains(team.id.toString())}">
                                 <label class="form-check-label" th:text="${team.name + ' (' + team.fifaCode + ')'}"></label>
@@ -50,12 +54,78 @@
             </div>
 
             <div class="text-center mt-3 mb-5">
+                <div id="validation-error" class="alert alert-danger d-none mb-3"></div>
+                <span id="team-count" class="me-3 fw-bold">0/32 teams selected</span>
                 <a href="/predict" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Save Predictions</button>
+                <button type="submit" id="save-btn" class="btn btn-primary">Save Predictions</button>
             </div>
         </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const MAX_THIRD_PLACE_GROUPS = 8;
+
+        function getGroupCounts() {
+            const counts = {};
+            document.querySelectorAll('.card').forEach(card => {
+                const g = card.getAttribute('data-group');
+                if (!g) return;
+                counts[g] = card.querySelectorAll('.group-check:checked').length;
+            });
+            return counts;
+        }
+
+        function updateDisabled() {
+            const counts = getGroupCounts();
+            const groupsWith3 = Object.values(counts).filter(c => c === 3).length;
+            const thirdPlaceFull = groupsWith3 >= MAX_THIRD_PLACE_GROUPS;
+            const total = Object.values(counts).reduce((a, b) => a + b, 0);
+            document.getElementById('team-count').textContent = total + '/32 teams selected';
+
+            document.querySelectorAll('.card').forEach(card => {
+                const g = card.getAttribute('data-group');
+                if (!g) return;
+                const checkedCount = counts[g] || 0;
+                const boxes = card.querySelectorAll('.group-check');
+
+                boxes.forEach(cb => {
+                    if (cb.checked) {
+                        cb.disabled = false;
+                    } else if (checkedCount >= 3) {
+                        // Group already has 3 selected — disable unchecked
+                        cb.disabled = true;
+                    } else if (checkedCount >= 2 && thirdPlaceFull) {
+                        // 8 groups already have 3 — don't allow a 9th
+                        cb.disabled = true;
+                    } else {
+                        cb.disabled = false;
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll('.group-check').forEach(cb => {
+            cb.addEventListener('change', updateDisabled);
+        });
+        updateDisabled();
+
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const counts = getGroupCounts();
+            for (const [g, c] of Object.entries(counts)) {
+                if (c < 2) {
+                    e.preventDefault();
+                    document.getElementById('validation-error').textContent =
+                        'Group ' + g + ' has only ' + c + ' selected. At least 2 per group required.';
+                    document.getElementById('validation-error').classList.remove('d-none');
+                    return;
+                }
+            }
+            document.getElementById('validation-error').classList.add('d-none');
+            const btn = document.getElementById('save-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+        });
+    </script>
 </body>
 </html>

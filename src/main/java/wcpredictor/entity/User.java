@@ -32,5 +32,5 @@ public class User {
     private Instant passwordResetTokenExpiry;
 
     @ManyToMany(mappedBy = "users")
-    private List<Game> games = new ArrayList<>();
+    private List<Pool> pools = new ArrayList<>();
 }

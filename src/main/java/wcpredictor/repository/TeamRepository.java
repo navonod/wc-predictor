@@ -9,4 +9,5 @@ public interface TeamRepository extends JpaRepository<Team, UUID> {
     List<Team> findByGroupLetterOrderByNameAsc(String groupLetter);
     List<Team> findByGroupLetterIsNotNullOrderByGroupLetterAscNameAsc();
     List<Team> findAllByOrderByNameAsc();
+    List<Team> findByTournamentId(UUID tournamentId);
 }

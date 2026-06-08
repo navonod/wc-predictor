@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import wcpredictor.entity.*;
 import wcpredictor.service.*;
 
@@ -18,17 +19,17 @@ public class AdminController {
     private final TeamService teamService;
     private final MatchService matchService;
     private final SettingService settingService;
-    private final GameService gameService;
+    private final PoolService poolService;
     private final UserService userService;
     private final TournamentService tournamentService;
 
     public AdminController(TeamService teamService, MatchService matchService,
-                            SettingService settingService, GameService gameService,
+                            SettingService settingService, PoolService poolService,
                             UserService userService, TournamentService tournamentService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
-        this.gameService = gameService;
+        this.poolService = poolService;
         this.userService = userService;
         this.tournamentService = tournamentService;
     }
@@ -122,49 +123,49 @@ public class AdminController {
         return "redirect:/admin/settings?updated";
     }
 
-    @GetMapping("/games")
-    public String manageGames(Model model) {
-        model.addAttribute("games", gameService.findAll());
-        return "admin/games";
+    @GetMapping("/pools")
+    public String managePools(Model model) {
+        model.addAttribute("pools", poolService.findAll());
+        return "admin/pools";
     }
 
-    @PostMapping("/games/create")
-    public String createGame(@RequestParam String name, @RequestParam String description) {
-        gameService.create(name, description);
-        return "redirect:/admin/games";
+    @PostMapping("/pools/create")
+    public String createPool(@RequestParam String name, @RequestParam String description) {
+        poolService.create(name, description);
+        return "redirect:/admin/pools";
     }
 
-    @PostMapping("/games/delete")
-    public String deleteGame(@RequestParam UUID id) {
-        gameService.delete(id);
-        return "redirect:/admin/games";
+    @PostMapping("/pools/delete")
+    public String deletePool(@RequestParam UUID id) {
+        poolService.delete(id);
+        return "redirect:/admin/pools";
     }
 
-    @GetMapping("/games/{id}/users")
-    public String manageGameUsers(@PathVariable UUID id, Model model) {
-        var game = gameService.findById(id).orElseThrow();
+    @GetMapping("/pools/{id}/users")
+    public String managePoolUsers(@PathVariable UUID id, Model model) {
+        var pool = poolService.findById(id).orElseThrow();
         var allUsers = userService.findAll();
-        var gameUserIds = game.getUsers().stream().map(User::getId).collect(java.util.stream.Collectors.toSet());
-        model.addAttribute("game", game);
+        var poolUserIds = pool.getUsers().stream().map(User::getId).collect(java.util.stream.Collectors.toSet());
+        model.addAttribute("pool", pool);
         model.addAttribute("allUsers", allUsers);
-        model.addAttribute("gameUserIds", gameUserIds);
-        return "admin/game-users";
+        model.addAttribute("poolUserIds", poolUserIds);
+        return "admin/pool-users";
     }
 
-    @PostMapping("/games/{id}/users/add")
-    public String addUserToGame(@PathVariable UUID id, @RequestParam UUID userId) {
-        var game = gameService.findById(id).orElseThrow();
+    @PostMapping("/pools/{id}/users/add")
+    public String addUserToPool(@PathVariable UUID id, @RequestParam UUID userId) {
+        var pool = poolService.findById(id).orElseThrow();
         var user = userService.findById(userId).orElseThrow();
-        gameService.addUser(game, user);
-        return "redirect:/admin/games/" + id + "/users";
+        poolService.addUser(pool, user);
+        return "redirect:/admin/pools/" + id + "/users";
     }
 
-    @PostMapping("/games/{id}/users/remove")
-    public String removeUserFromGame(@PathVariable UUID id, @RequestParam UUID userId) {
-        var game = gameService.findById(id).orElseThrow();
+    @PostMapping("/pools/{id}/users/remove")
+    public String removeUserFromPool(@PathVariable UUID id, @RequestParam UUID userId) {
+        var pool = poolService.findById(id).orElseThrow();
         var user = userService.findById(userId).orElseThrow();
-        gameService.removeUser(game, user);
-        return "redirect:/admin/games/" + id + "/users";
+        poolService.removeUser(pool, user);
+        return "redirect:/admin/pools/" + id + "/users";
     }
 
     @GetMapping("/tournaments")
@@ -180,8 +181,13 @@ public class AdminController {
     }
 
     @PostMapping("/tournaments/delete")
-    public String deleteTournament(@RequestParam UUID id) {
-        tournamentService.delete(id);
+    public String deleteTournament(@RequestParam UUID id, RedirectAttributes ra) {
+        try {
+            tournamentService.delete(id);
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/tournaments";
+        }
         return "redirect:/admin/tournaments";
     }
 

@@ -96,9 +96,15 @@ public class PredictionController {
     }
 
     @PostMapping("/predict/group")
-    public String saveGroupPredictions(@RequestParam("teamId") List<UUID> teamIds, Principal principal) {
+    public String saveGroupPredictions(@RequestParam("teamId") List<UUID> teamIds, Principal principal,
+                                        RedirectAttributes ra) {
         User user = getCurrentUser(principal);
-        predictionService.saveGroupAdvancementPredictions(user, teamIds);
+        try {
+            predictionService.saveGroupAdvancementPredictions(user, teamIds);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/predict/group";
+        }
         return "redirect:/predict?groupSaved";
     }
 

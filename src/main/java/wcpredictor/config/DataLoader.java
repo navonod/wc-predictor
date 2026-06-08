@@ -166,7 +166,7 @@ public class DataLoader {
     @Bean
     public CommandLineRunner loadData(TeamRepository teamRepo, MatchRepository matchRepo,
                                        SettingRepository settingRepo, UserRepository userRepo,
-                                       PasswordEncoder passwordEncoder, GameRepository gameRepo,
+                                       PasswordEncoder passwordEncoder, PoolRepository poolRepo,
                                        TournamentRepository tournamentRepo) {
         return args -> {
             Tournament tournament = tournamentRepo.findAll().stream().findFirst().orElse(null);
@@ -344,16 +344,16 @@ public class DataLoader {
                 }
             }
 
-            if (gameRepo.count() == 0) {
-                log.info("Creating default game...");
-                Game game = new Game();
-                game.setName("Default Game");
-                game.setDescription("The main 2026 World Cup predictor competition");
-                game.setCreatedAt(java.time.Instant.now());
+            if (poolRepo.count() == 0) {
+                log.info("Creating default pool...");
+                Pool pool = new Pool();
+                pool.setName("Default Pool");
+                pool.setDescription("The main predictor competition pool");
+                pool.setCreatedAt(java.time.Instant.now());
                 var adminUser = userRepo.findByEmailAddress("wcpredictor@thatcher.africa");
-                adminUser.ifPresent(u -> game.getUsers().add(u));
-                gameRepo.save(game);
-                log.info("Default game created with admin user.");
+                adminUser.ifPresent(u -> pool.getUsers().add(u));
+                poolRepo.save(pool);
+                log.info("Default pool created with admin user.");
             }
         };
     }
@@ -381,7 +381,6 @@ public class DataLoader {
                 t = tournamentRepo.save(t);
                 log.info("Created tournament: {}", tournamentName);
 
-                Map<Integer, Match> existingByNumber = new HashMap<>();
                 for (Match m : matchRepo.findAll()) {
                     existingByNumber.put(m.getMatchNumber(), m);
                 }
