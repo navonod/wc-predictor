@@ -55,8 +55,11 @@ public class UserRegistrationService {
         if (!password.equals(confirmPassword)) throw new Exception("Passwords do not match.");
 
         Optional<User> existing = userRepository.findByEmailAddress(email);
-        if (existing.isPresent() && existing.get().getEncryptedPassword() != null) {
-            throw new Exception("Email already registered.");
+        if (existing.isPresent()) {
+            if (existing.get().getConfirmed() != null && existing.get().getConfirmed()) {
+                throw new Exception("Email already registered.");
+            }
+            tokenRepository.deleteByUserId(existing.get().getId());
         }
 
         User user = existing.orElseGet(() -> {

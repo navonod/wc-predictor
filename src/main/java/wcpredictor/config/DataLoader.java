@@ -172,7 +172,7 @@ public class DataLoader {
             Tournament tournament = tournamentRepo.findAll().stream().findFirst().orElse(null);
             if (tournament == null) {
                 tournament = new Tournament();
-                tournament.setName("2026 FIFA World Cup");
+                tournament.setName("FIFA World Cup 2026");
                 tournament.setDescription("Canada, Mexico, United States");
                 tournament.setCreatedAt(java.time.Instant.now());
                 tournament = tournamentRepo.save(tournament);
@@ -285,6 +285,23 @@ public class DataLoader {
                 }
             }
 
+            importScheduleCsvs(tournamentRepo, matchRepo);
+
+            for (Match match : matchRepo.findAll()) {
+                var round = match.getRound();
+                if (round != null && !match.isPredictionsLocked()) {
+                    var earliest = matchRepo.findByRoundOrderByMatchDateAsc(round).stream()
+                            .map(Match::getMatchDate)
+                            .filter(Objects::nonNull)
+                            .min(Comparator.naturalOrder())
+                            .orElse(null);
+                    if (earliest != null && !earliest.equals(match.getPredictionsLockTime())) {
+                        match.setPredictionsLockTime(earliest);
+                        matchRepo.save(match);
+                    }
+                }
+            }
+
             if (settingRepo.count() == 0) {
                 log.info("Seeding default settings...");
                 Setting s;
@@ -339,5 +356,87 @@ public class DataLoader {
                 log.info("Default game created with admin user.");
             }
         };
+    }
+
+    private int importScheduleCsvs(TournamentRepository tournamentRepo, MatchRepository matchRepo) {
+        int imported = 0;
+        try {
+            var resolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
+            var resources = resolver.getResources("classpath:data/*-schedule.csv");
+            for (var resource : resources) {
+                String filename = resource.getFilename();
+                if (filename == null) continue;
+                String tournamentName = filename.replace("-schedule.csv", "").replace("_", " ");
+                Map<Integer, Match> existingByNumber = new HashMap<>();
+                for (Match m : matchRepo.findAll()) {
+                    existingByNumber.put(m.getMatchNumber(), m);
+                }
+                if (existingByNumber.containsKey(104)) {
+                    log.info("Schedule already imported (match 104 exists), skipping.");
+                    continue;
+                }
+                Tournament t = new Tournament();
+                t.setName(tournamentName);
+                t.setCreatedAt(java.time.Instant.now());
+                t = tournamentRepo.save(t);
+                log.info("Created tournament: {}", tournamentName);
+
+                Map<Integer, Match> existingByNumber = new HashMap<>();
+                for (Match m : matchRepo.findAll()) {
+                    existingByNumber.put(m.getMatchNumber(), m);
+                }
+                try (var reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(resource.getInputStream(),
+                                java.nio.charset.StandardCharsets.UTF_8))) {
+                    String line;
+                    boolean headerSkipped = false;
+                    int lastMatchNum = 0;
+                    while ((line = reader.readLine()) != null) {
+                        if (!headerSkipped) { headerSkipped = true; continue; }
+                        String[] cols = line.split(",", -1);
+                        if (cols.length < 7) continue;
+                        int matchNum = Integer.parseInt(cols[0].trim());
+                        String utcDateStr = cols[1].trim();
+                        boolean estimated = "TRUE".equalsIgnoreCase(cols[2].trim());
+                        String venue = cols[5].trim();
+                        LocalDateTime utcDate = LocalDateTime.parse(utcDateStr.replace(" ", "T"));
+                        lastMatchNum = matchNum;
+
+                        Match match = existingByNumber.get(matchNum);
+                        if (match != null) {
+                            if (match.getTournament() == null) match.setTournament(t);
+                            match.setMatchDate(utcDate);
+                            match.setMatchDateEstimated(estimated);
+                            match.setVenue(venue);
+                            matchRepo.save(match);
+                        } else {
+                            RoundType round;
+                            if (matchNum <= 88) round = RoundType.ROUND_OF_32;
+                            else if (matchNum <= 96) round = RoundType.ROUND_OF_16;
+                            else if (matchNum <= 100) round = RoundType.QUARTER_FINAL;
+                            else if (matchNum <= 102) round = RoundType.SEMI_FINAL;
+                            else if (matchNum == 103) round = RoundType.THIRD_PLACE;
+                            else round = RoundType.FINAL;
+
+                            Match newMatch = new Match();
+                            newMatch.setMatchNumber(matchNum);
+                            newMatch.setRound(round);
+                            newMatch.setMatchDate(utcDate);
+                            newMatch.setMatchDateEstimated(estimated);
+                            newMatch.setVenue(venue);
+                            newMatch.setTournament(t);
+                            newMatch.setPredictionsLockTime(utcDate);
+                            newMatch.setPredictionsLocked(true);
+                            matchRepo.save(newMatch);
+                        }
+                    }
+                    log.info("Imported {} matches for tournament '{}'", lastMatchNum, tournamentName);
+                }
+                imported++;
+            }
+        } catch (Exception e) {
+            log.error("Failed to import schedule files: {}", e.getMessage());
+        }
+        return imported;
     }
 }

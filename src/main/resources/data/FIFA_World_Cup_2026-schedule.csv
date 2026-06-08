@@ -1,0 +1,105 @@
+Match No,Date/Time in UTC,Estimated Time,Team 1,Team 2,Venue,Local Time,Timezone
+1,2026-06-11 19:00,FALSE,Mexico,South Africa,Mexico City Stadium,2026-06-11 13:00,UTC-6
+2,2026-06-12 02:00,FALSE,South Korea,Czechia,Estadio Guadalajara,2026-06-11 20:00,UTC-6
+3,2026-06-12 19:00,FALSE,Canada,Bosnia & Herzegovina,Toronto Stadium,2026-06-12 15:00,UTC-4
+4,2026-06-13 01:00,FALSE,USA,Paraguay,Los Angeles Stadium,2026-06-12 18:00,UTC-7
+5,2026-06-13 19:00,FALSE,Qatar,Switzerland,San Francisco Bay Area Stadium,2026-06-13 12:00,UTC-7
+6,2026-06-13 22:00,FALSE,Brazil,Morocco,New York New Jersey Stadium,2026-06-13 18:00,UTC-4
+7,2026-06-14 01:00,FALSE,Haiti,Scotland,Boston Stadium,2026-06-13 21:00,UTC-4
+8,2026-06-14 04:00,FALSE,Australia,Türkiye,BC Place Vancouver,2026-06-13 21:00,UTC-7
+9,2026-06-14 17:00,FALSE,Germany,Curaçao,Houston Stadium,2026-06-14 12:00,UTC-5
+10,2026-06-14 20:00,FALSE,Netherlands,Japan,Dallas Stadium,2026-06-14 15:00,UTC-5
+11,2026-06-14 23:00,FALSE,Ivory Coast,Ecuador,Philadelphia Stadium,2026-06-14 19:00,UTC-4
+12,2026-06-15 02:00,FALSE,Sweden,Tunisia,Estadio Monterrey,2026-06-14 20:00,UTC-6
+13,2026-06-15 16:00,FALSE,Spain,Cabo Verde,Atlanta Stadium,2026-06-15 12:00,UTC-4
+14,2026-06-15 19:00,FALSE,Belgium,Egypt,Seattle Stadium,2026-06-15 12:00,UTC-7
+15,2026-06-15 22:00,FALSE,Saudi Arabia,Uruguay,Miami Stadium,2026-06-15 18:00,UTC-4
+16,2026-06-16 01:00,FALSE,Iran,New Zealand,Los Angeles Stadium,2026-06-15 18:00,UTC-7
+17,2026-06-16 19:00,FALSE,France,Senegal,New York New Jersey Stadium,2026-06-16 15:00,UTC-4
+18,2026-06-16 22:00,FALSE,Iraq,Norway,Boston Stadium,2026-06-16 18:00,UTC-4
+19,2026-06-17 01:00,FALSE,Argentina,Algeria,Kansas City Stadium,2026-06-16 20:00,UTC-5
+20,2026-06-17 04:00,FALSE,Austria,Jordan,San Francisco Bay Area Stadium,2026-06-16 21:00,UTC-7
+21,2026-06-17 17:00,FALSE,Portugal,DR Congo,Houston Stadium,2026-06-17 12:00,UTC-5
+22,2026-06-17 20:00,FALSE,England,Croatia,Dallas Stadium,2026-06-17 15:00,UTC-5
+23,2026-06-17 23:00,FALSE,Ghana,Panama,Toronto Stadium,2026-06-17 19:00,UTC-4
+24,2026-06-18 02:00,FALSE,Uzbekistan,Colombia,Mexico City Stadium,2026-06-17 20:00,UTC-6
+25,2026-06-18 16:00,FALSE,Czechia,South Africa,Atlanta Stadium,2026-06-18 12:00,UTC-4
+26,2026-06-18 19:00,FALSE,Switzerland,Bosnia & Herzegovina,Los Angeles Stadium,2026-06-18 12:00,UTC-7
+27,2026-06-18 22:00,FALSE,Canada,Qatar,BC Place Vancouver,2026-06-18 15:00,UTC-7
+28,2026-06-19 01:00,FALSE,Mexico,South Korea,Estadio Guadalajara,2026-06-18 19:00,UTC-6
+29,2026-06-19 19:00,FALSE,USA,Australia,Seattle Stadium,2026-06-19 12:00,UTC-7
+30,2026-06-19 22:00,FALSE,Scotland,Morocco,Boston Stadium,2026-06-19 18:00,UTC-4
+31,2026-06-20 00:30,FALSE,Brazil,Haiti,Philadelphia Stadium,2026-06-19 20:30,UTC-4
+32,2026-06-20 03:00,FALSE,Türkiye,Paraguay,San Francisco Bay Area Stadium,2026-06-19 20:00,UTC-7
+33,2026-06-20 17:00,FALSE,Netherlands,Sweden,Houston Stadium,2026-06-20 12:00,UTC-5
+34,2026-06-20 20:00,FALSE,Germany,Ivory Coast,Toronto Stadium,2026-06-20 16:00,UTC-4
+35,2026-06-21 00:00,FALSE,Ecuador,Curaçao,Kansas City Stadium,2026-06-20 19:00,UTC-5
+36,2026-06-21 04:00,FALSE,Tunisia,Japan,Estadio Monterrey,2026-06-20 22:00,UTC-6
+37,2026-06-21 16:00,FALSE,Spain,Saudi Arabia,Atlanta Stadium,2026-06-21 12:00,UTC-4
+38,2026-06-21 19:00,FALSE,Belgium,Iran,Los Angeles Stadium,2026-06-21 12:00,UTC-7
+39,2026-06-22 00:00,FALSE,Uruguay,Cabo Verde,Miami Stadium,2026-06-21 18:00,UTC-4
+40,2026-06-22 03:00,FALSE,New Zealand,Egypt,BC Place Vancouver,2026-06-21 18:00,UTC-7
+43,2026-06-22 17:00,FALSE,Argentina,Austria,Dallas Stadium,2026-06-22 12:00,UTC-5
+42,2026-06-22 21:00,FALSE,France,Iraq,Philadelphia Stadium,2026-06-22 17:00,UTC-4
+41,2026-06-23 00:00,FALSE,Norway,Senegal,New York New Jersey Stadium,2026-06-22 20:00,UTC-4
+44,2026-06-23 03:00,FALSE,Jordan,Algeria,San Francisco Bay Area Stadium,2026-06-22 20:00,UTC-7
+47,2026-06-23 17:00,FALSE,Portugal,Uzbekistan,Houston Stadium,2026-06-23 12:00,UTC-5
+45,2026-06-23 20:00,FALSE,England,Ghana,Boston Stadium,2026-06-23 16:00,UTC-4
+46,2026-06-23 23:00,FALSE,Panama,Croatia,Toronto Stadium,2026-06-23 19:00,UTC-4
+48,2026-06-24 02:00,FALSE,Colombia,Congo DR,Estadio Guadalajara,2026-06-23 20:00,UTC-6
+49,2026-06-24 22:00,FALSE,Scotland,Brazil,Miami Stadium,2026-06-24 18:00,UTC-4
+50,2026-06-24 22:00,FALSE,Morocco,Haiti,Atlanta Stadium,2026-06-24 18:00,UTC-4
+53,2026-06-25 01:00,FALSE,Czechia,Mexico,Mexico City Stadium,2026-06-24 19:00,UTC-6
+54,2026-06-25 01:00,FALSE,South Africa,South Korea,Estadio Monterrey,2026-06-24 19:00,UTC-6
+51,2026-06-25 02:00,TRUE,Switzerland,Canada,BC Place Vancouver,2026-06-24 19:00,UTC-7
+52,2026-06-25 02:00,TRUE,Bosnia & Herzegovina,Qatar,Seattle Stadium,2026-06-24 19:00,UTC-7
+55,2026-06-25 20:00,FALSE,Curaçao,Ivory Coast,Philadelphia Stadium,2026-06-25 16:00,UTC-4
+56,2026-06-25 20:00,FALSE,Ecuador,Germany,New York New Jersey Stadium,2026-06-25 16:00,UTC-4
+57,2026-06-25 23:00,FALSE,Japan,Sweden,Dallas Stadium,2026-06-25 18:00,UTC-5
+58,2026-06-25 23:00,FALSE,Tunisia,Netherlands,Kansas City Stadium,2026-06-25 18:00,UTC-5
+59,2026-06-26 02:00,FALSE,USA,Türkiye,Los Angeles Stadium,2026-06-25 19:00,UTC-7
+60,2026-06-26 02:00,TRUE,Paraguay,Australia,San Francisco Bay Area Stadium,2026-06-25 19:00,UTC-7
+61,2026-06-26 20:00,TRUE,France,Norway,Boston Stadium,2026-06-26 16:00,UTC-4
+62,2026-06-26 20:00,TRUE,Senegal,Iraq,Toronto Stadium,2026-06-26 16:00,UTC-4
+65,2026-06-26 23:00,TRUE,Spain,Uruguay,Houston Stadium,2026-06-26 18:00,UTC-5
+66,2026-06-26 23:00,TRUE,Cape Verde,Saudi Arabia,Estadio Guadalajara,2026-06-26 17:00,UTC-6
+63,2026-06-27 02:00,TRUE,Belgium,New Zealand,Seattle Stadium,2026-06-26 19:00,UTC-7
+64,2026-06-27 02:00,TRUE,Egypt,Iran,BC Place Vancouver,2026-06-26 19:00,UTC-7
+71,2026-06-27 20:00,TRUE,Portugal,Colombia,Miami Stadium,2026-06-27 16:00,UTC-4
+72,2026-06-27 20:00,TRUE,Congo DR,Uzbekistan,Atlanta Stadium,2026-06-27 16:00,UTC-4
+67,2026-06-27 21:00,FALSE,Panama,England,New York New Jersey Stadium,2026-06-27 17:00,UTC-4
+68,2026-06-27 21:00,FALSE,Croatia,Ghana,Philadelphia Stadium,2026-06-27 17:00,UTC-4
+69,2026-06-27 23:00,TRUE,Argentina,Jordan,Kansas City Stadium,2026-06-27 18:00,UTC-5
+70,2026-06-27 23:00,TRUE,Algeria,Austria,Dallas Stadium,2026-06-27 18:00,UTC-5
+73,2026-06-28 19:00,FALSE,Runner-up Group A,Runner-up Group B,Los Angeles Stadium,2026-06-28 12:00,UTC-7
+76,2026-06-29 17:00,FALSE,Winner Group C,Runner-up Group F,Houston Stadium,2026-06-29 12:00,UTC-5
+74,2026-06-29 20:30,FALSE,Winner Group E,3rd A/B/C/D/F,Boston Stadium,2026-06-29 16:30,UTC-4
+75,2026-06-30 02:00,FALSE,Winner Group F,Runner-up Group C,Estadio Monterrey,2026-06-29 20:00,UTC-6
+78,2026-06-30 17:00,FALSE,Runner-up Group E,Runner-up Group I,Dallas Stadium,2026-06-30 12:00,UTC-5
+77,2026-06-30 21:00,FALSE,Winner Group I,3rd C/D/F/G/H,New York New Jersey Stadium,2026-06-30 17:00,UTC-4
+79,2026-07-01 02:00,FALSE,Winner Group A,3rd C/E/F/H/I,Mexico City Stadium,2026-06-30 20:00,UTC-6
+80,2026-07-01 16:00,FALSE,Winner Group L,3rd E/H/I/J/K,Atlanta Stadium,2026-07-01 12:00,UTC-4
+82,2026-07-01 20:00,FALSE,Winner Group G,3rd A/E/H/I/J,Seattle Stadium,2026-07-01 13:00,UTC-7
+81,2026-07-02 00:00,FALSE,Winner Group D,3rd B/E/F/I/J,San Francisco Bay Area Stadium,2026-07-01 17:00,UTC-7
+84,2026-07-02 19:00,FALSE,Winner Group H,Runner-up Group J,Los Angeles Stadium,2026-07-02 12:00,UTC-7
+83,2026-07-02 23:00,FALSE,Runner-up Group K,Runner-up Group L,Toronto Stadium,2026-07-02 19:00,UTC-4
+85,2026-07-03 03:00,FALSE,Winner Group B,3rd E/F/G/I/J,BC Place Vancouver,2026-07-02 20:00,UTC-7
+88,2026-07-03 18:00,FALSE,Runner-up Group D,Runner-up Group G,Dallas Stadium,2026-07-03 13:00,UTC-5
+86,2026-07-03 22:00,FALSE,Winner Group J,Runner-up Group H,Miami Stadium,2026-07-03 18:00,UTC-4
+87,2026-07-04 01:30,FALSE,Winner Group K,3rd D/E/I/J/L,Kansas City Stadium,2026-07-03 20:30,UTC-5
+90,2026-07-04 17:00,FALSE,Winner Match 73,Winner Match 75,Houston Stadium,2026-07-04 12:00,UTC-5
+89,2026-07-04 21:00,FALSE,Winner Match 74,Winner Match 77,Philadelphia Stadium,2026-07-04 17:00,UTC-4
+91,2026-07-05 20:00,FALSE,Winner Match 76,Winner Match 78,New York New Jersey Stadium,2026-07-05 16:00,UTC-4
+92,2026-07-06 01:00,FALSE,Winner Match 79,Winner Match 80,Mexico City Stadium,2026-07-05 19:00,UTC-6
+93,2026-07-06 19:00,FALSE,Winner Match 83,Winner Match 84,Dallas Stadium,2026-07-06 14:00,UTC-5
+94,2026-07-07 00:00,FALSE,Winner Match 81,Winner Match 82,Seattle Stadium,2026-07-06 17:00,UTC-7
+95,2026-07-09 23:00,TRUE,Winner Match 86,Winner Match 88,Atlanta Stadium,2026-07-09 19:00,UTC-4
+96,2026-07-10 02:00,TRUE,Winner Match 85,Winner Match 87,BC Place Vancouver,2026-07-09 19:00,UTC-7
+97,2026-07-10 23:00,TRUE,Winner Match 89,Winner Match 90,Boston Stadium,2026-07-10 19:00,UTC-4
+98,2026-07-11 02:00,TRUE,Winner Match 93,Winner Match 94,Los Angeles Stadium,2026-07-10 19:00,UTC-7
+99,2026-07-11 23:00,TRUE,Winner Match 91,Winner Match 92,Miami Stadium,2026-07-11 19:00,UTC-4
+100,2026-07-12 00:00,TRUE,Winner Match 95,Winner Match 96,Kansas City Stadium,2026-07-11 19:00,UTC-5
+101,2026-07-15 23:00,TRUE,Winner Match 97,Winner Match 98,Dallas Stadium,2026-07-15 18:00,UTC-5
+102,2026-07-16 00:00,TRUE,Winner Match 99,Winner Match 100,Atlanta Stadium,2026-07-15 20:00,UTC-4
+103,2026-07-18 20:00,TRUE,Loser Match 101,Loser Match 102,Miami Stadium,2026-07-18 16:00,UTC-4
+104,2026-07-19 19:00,FALSE,Winner Match 101,Winner Match 102,New York New Jersey Stadium,2026-07-19 15:00,UTC-4

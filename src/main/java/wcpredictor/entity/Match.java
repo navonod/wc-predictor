@@ -45,6 +45,9 @@ public class Match {
 
     private LocalDateTime predictionsLockTime;
 
+    @Column(nullable = false)
+    private boolean matchDateEstimated = false;
+
     public boolean isLocked() {
         if (predictionsLocked) return true;
         if (predictionsLockTime != null && LocalDateTime.now(ZoneOffset.UTC).isAfter(predictionsLockTime)) return true;

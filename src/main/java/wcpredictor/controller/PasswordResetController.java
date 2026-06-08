@@ -9,6 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import wcpredictor.entity.User;
 import wcpredictor.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -48,10 +49,15 @@ public class PasswordResetController {
     }
 
     @PostMapping("/forgot-password")
-    public String forgotPassword(@RequestParam String email, Model model) {
+    public String forgotPassword(@RequestParam String email, Model model, RedirectAttributes ra) {
         var userOpt = userService.findByEmailAddress(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            if (user.getConfirmed() == null || !user.getConfirmed()) {
+                ra.addFlashAttribute("message", "That email has not been confirmed yet. Please re-submit your registration.");
+                ra.addFlashAttribute("error", true);
+                return "redirect:/register";
+            }
             user.setPasswordResetToken(UUID.randomUUID().toString());
             user.setPasswordResetTokenExpiry(Instant.now().plus(1, ChronoUnit.HOURS));
             userService.save(user);

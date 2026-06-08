@@ -5,6 +5,7 @@ services:
       - "127.0.0.1:1986:8090"
     volumes:
       - wcdata:/app/data
+      - wclogs:/app/logs
     environment:
       SPRING_PROFILES_ACTIVE: prod
       APP_BASE_URL: https://wc.thatcher.africa
@@ -19,3 +20,4 @@ services:
 
 volumes:
   wcdata:
+  wclogs:

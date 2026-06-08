@@ -4,6 +4,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import wcpredictor.entity.*;
 import wcpredictor.service.*;
 
@@ -182,5 +183,30 @@ public class AdminController {
     public String deleteTournament(@RequestParam UUID id) {
         tournamentService.delete(id);
         return "redirect:/admin/tournaments";
+    }
+
+    @GetMapping("/tournaments/{id}/import")
+    public String importForm(@PathVariable UUID id, Model model) {
+        model.addAttribute("tournament", tournamentService.findById(id).orElseThrow());
+        return "admin/tournament-import";
+    }
+
+    @PostMapping("/tournaments/{id}/import")
+    public String importSchedule(@PathVariable UUID id,
+                                  @RequestParam("file") MultipartFile file,
+                                  Model model) {
+        if (file.isEmpty()) {
+            model.addAttribute("error", "No file selected.");
+            model.addAttribute("tournament", tournamentService.findById(id).orElseThrow());
+            return "admin/tournament-import";
+        }
+        try {
+            int count = tournamentService.importSchedule(id, file.getInputStream());
+            model.addAttribute("success", "Imported " + count + " matches.");
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        model.addAttribute("tournament", tournamentService.findById(id).orElseThrow());
+        return "admin/tournament-import";
     }
 }

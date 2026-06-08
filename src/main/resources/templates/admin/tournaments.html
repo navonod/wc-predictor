@@ -55,8 +55,9 @@
                     <td th:text="${t.description}"></td>
                     <td th:text="${#temporals.format(t.createdAt, 'MMM d, yyyy')}"></td>
                     <td>
+                        <a th:href="@{/admin/tournaments/{id}/import(id=${t.id})}" class="btn btn-sm btn-outline-success">Import Schedule</a>
                         <form method="post" th:action="@{/admin/tournaments/delete}" class="d-inline"
-                              onsubmit="return confirm('Delete this tournament? This will also delete all associated matches and teams.')">
+                              onsubmit="return confirm('Delete this tournament?')">
                             <input type="hidden" name="id" th:value="${t.id}">
                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>
