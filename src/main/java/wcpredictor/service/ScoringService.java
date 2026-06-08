@@ -116,15 +116,18 @@ public class ScoringService {
                 .filter(u -> !u.isAdmin())
                 .filter(u -> gameUserIds.isEmpty() || gameUserIds.contains(u.getId()))
                 .map(u -> {
+                    String name = getDisplayName(u);
+                    if (name.isEmpty()) return null;
                     UserScoreSummary s = new UserScoreSummary();
                     s.setUserId(u.getId());
-                    s.setDisplayName(getDisplayName(u));
+                    s.setDisplayName(name);
                     s.setMatchPoints(getTotalMatchPoints(u.getId()));
                     s.setAwardPoints(getTotalAwardPoints(u.getId()));
                     s.setGroupPoints(calculateGroupAdvancementPoints(u.getId()));
                     s.setTotalPoints(s.getMatchPoints() + s.getAwardPoints() + s.getGroupPoints());
                     return s;
                 })
+                .filter(Objects::nonNull)
                 .sorted((a, b) -> Double.compare(b.getTotalPoints(), a.getTotalPoints()))
                 .collect(Collectors.toList());
     }
@@ -132,8 +135,8 @@ public class ScoringService {
     private String getDisplayName(User user) {
         if (user.getNickname() != null && !user.getNickname().isBlank()) return user.getNickname();
         if (user.getFirstName() != null && !user.getFirstName().isBlank())
-            return user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
-        return user.getEmailAddress();
+            return user.getFirstName() + (user.getLastName() != null && !user.getLastName().isBlank() ? " " + user.getLastName() : "");
+        return "";
     }
 
     private double getDoubleSetting(String name) {
