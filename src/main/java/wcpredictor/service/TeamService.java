@@ -18,15 +18,15 @@ public class TeamService {
     }
 
     public List<Team> getAllTeams() {
-        return teamRepository.findAllByOrderByNameAsc();
+        return teamRepository.findAllByOrderByGroupLetterAscSortOrderAsc();
     }
 
     public List<Team> getGroupedTeams() {
-        return teamRepository.findByGroupLetterIsNotNullOrderByGroupLetterAscNameAsc();
+        return teamRepository.findByGroupLetterIsNotNullOrderByGroupLetterAscSortOrderAsc();
     }
 
     public List<Team> getTeamsByGroup(String groupLetter) {
-        return teamRepository.findByGroupLetterOrderByNameAsc(groupLetter);
+        return teamRepository.findByGroupLetterOrderBySortOrderAsc(groupLetter);
     }
 
     public Optional<Team> findById(UUID id) {

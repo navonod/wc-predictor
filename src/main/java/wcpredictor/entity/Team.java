@@ -21,6 +21,7 @@ public class Team {
     @Column(length = 1)
     private String groupLetter;
 
+    @Column(columnDefinition = "integer default 0")
     private int sortOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)

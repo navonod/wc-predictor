@@ -167,7 +167,8 @@ public class DataLoader {
     public CommandLineRunner loadData(TeamRepository teamRepo, MatchRepository matchRepo,
                                        SettingRepository settingRepo, UserRepository userRepo,
                                        PasswordEncoder passwordEncoder, PoolRepository poolRepo,
-                                       TournamentRepository tournamentRepo) {
+                                       TournamentRepository tournamentRepo,
+                                       GroupAdvancementPredictionRepository gapRepo) {
         return args -> {
             Tournament tournament = tournamentRepo.findAll().stream().findFirst().orElse(null);
             if (tournament == null) {
@@ -267,6 +268,8 @@ public class DataLoader {
                 }
                 log.info("Seeded 48 teams, {} group matches (MD1: {}, MD2: {}, MD3: {})", GROUP_MATCHES.length, md1Count, md2Count, md3Count);
             }
+
+            fixOverstuffedGroupPredictions(gapRepo, teamRepo, userRepo);
 
             for (Match match : matchRepo.findAll()) {
                 boolean changed = false;
@@ -424,7 +427,9 @@ public class DataLoader {
                     "Bosnia & Herzegovina", "Bosnia and Herzegovina",
                     "Cabo Verde", "Cape Verde",
                     "T\u00fcrkiye", "Turkey",
-                    "Congo DR", "DR Congo"
+                    "Congo DR", "DR Congo",
+                    "USA", "United States",
+                    "IR Iran", "Iran"
                 );
                 for (Team team : teamRepo.findAll()) {
                     teamByName.put(team.getName(), team);
@@ -463,7 +468,10 @@ public class DataLoader {
                             if (matchNum <= 72) {
                                 Team t1 = teamByName.get(csvTeam1);
                                 Team t2 = teamByName.get(csvTeam2);
-                                if (t1 != null) match.setTeam1(t1);
+                                if (t1 != null) {
+                                    match.setTeam1(t1);
+                                    match.setGroupLetter(t1.getGroupLetter());
+                                }
                                 if (t2 != null) match.setTeam2(t2);
                             }
                             matchRepo.save(match);
@@ -507,7 +515,9 @@ public class DataLoader {
                 "Bosnia & Herzegovina", "Bosnia and Herzegovina",
                 "Cabo Verde", "Cape Verde",
                 "T\u00fcrkiye", "Turkey",
-                "Congo DR", "DR Congo"
+                "Congo DR", "DR Congo",
+                "USA", "United States",
+                "IR Iran", "Iran"
             );
             for (Team team : teamRepo.findAll()) {
                 teamByName.put(team.getName(), team);
@@ -546,9 +556,11 @@ public class DataLoader {
                     if (t1 != null && t2 != null) {
                         UUID existing1 = match.getTeam1() != null ? match.getTeam1().getId() : null;
                         UUID existing2 = match.getTeam2() != null ? match.getTeam2().getId() : null;
-                        if (!t1.getId().equals(existing1) || !t2.getId().equals(existing2)) {
+                        if (!t1.getId().equals(existing1) || !t2.getId().equals(existing2)
+                                || !t1.getGroupLetter().equals(match.getGroupLetter())) {
                             match.setTeam1(t1);
                             match.setTeam2(t2);
+                            match.setGroupLetter(t1.getGroupLetter());
                             matchRepo.save(match);
                             fixed++;
                         }
@@ -558,6 +570,85 @@ public class DataLoader {
             }
         } catch (Exception e) {
             log.error("Failed to fix group match pairings: {}", e.getMessage());
+        }
+    }
+
+    private void fixOverstuffedGroupPredictions(GroupAdvancementPredictionRepository gapRepo,
+                                                  TeamRepository teamRepo, UserRepository userRepo) {
+        Map<UUID, List<GroupAdvancementPrediction>> byUser = new HashMap<>();
+        for (var gap : gapRepo.findAll()) {
+            byUser.computeIfAbsent(gap.getUser().getId(), k -> new ArrayList<>()).add(gap);
+        }
+
+        int usersFixed = 0;
+        for (var entry : byUser.entrySet()) {
+            UUID userId = entry.getKey();
+            List<GroupAdvancementPrediction> preds = entry.getValue();
+            Set<UUID> allTeamIds = new HashSet<>();
+            for (var p : preds) {
+                allTeamIds.add(p.getTeam().getId());
+            }
+
+            var teams = teamRepo.findAllById(allTeamIds);
+            Map<Character, List<Team>> byGroup = new LinkedHashMap<>();
+            for (char g = 'A'; g <= 'L'; g++) byGroup.put(g, new ArrayList<>());
+            for (Team t : teams) {
+                if (t.getGroupLetter() != null) {
+                    byGroup.get(t.getGroupLetter().charAt(0)).add(t);
+                }
+            }
+
+            boolean needsFix = false;
+            for (var gEntry : byGroup.entrySet()) {
+                if (gEntry.getValue().size() > 3) needsFix = true;
+            }
+
+            if (!needsFix) continue;
+
+            // Remove excess: trim any group over 3 down to 3
+            Set<UUID> keep = new HashSet<>();
+            long groupsWith3 = 0;
+            for (var gEntry : byGroup.entrySet()) {
+                List<Team> groupTeams = gEntry.getValue();
+                if (groupTeams.size() > 3) {
+                    keep.addAll(groupTeams.subList(0, 3).stream().map(Team::getId).toList());
+                } else {
+                    keep.addAll(groupTeams.stream().map(Team::getId).toList());
+                }
+                if (Math.min(groupTeams.size(), 3) == 3) groupsWith3++;
+            }
+
+            // If more than 8 groups have 3, reduce some to 2
+            if (groupsWith3 > 8) {
+                long toReduce = groupsWith3 - 8;
+                for (var gEntry : byGroup.entrySet()) {
+                    if (toReduce <= 0) break;
+                    List<Team> groupTeams = gEntry.getValue();
+                    if (groupTeams.size() >= 3) {
+                        UUID removeId = groupTeams.get(2).getId();
+                        keep.remove(removeId);
+                        toReduce--;
+                    }
+                }
+            }
+
+            int removed = 0;
+            for (var p : preds) {
+                if (!keep.contains(p.getTeam().getId())) {
+                    gapRepo.delete(p);
+                    removed++;
+                }
+            }
+            if (removed > 0) {
+                var u = userRepo.findById(userId);
+                String email = u.map(User::getEmailAddress).orElse("unknown");
+                log.info("Cleaned {} overstuffed predictions for {} ({}) — removed {} teams",
+                        preds.size(), email, userId, removed);
+                usersFixed++;
+            }
+        }
+        if (usersFixed > 0) {
+            log.info("Fixed group predictions for {} users after group reassignment", usersFixed);
         }
     }
 }
