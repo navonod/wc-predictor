@@ -35,6 +35,9 @@ public class UserRegistrationService {
     @Value("${spring.mail.properties.mail.smtp.from:noreply@example.com}")
     private String fromAddress;
 
+    @Value("${spring.mail.reply-to:}")
+    private String replyTo;
+
     public UserRegistrationService(UserRepository userRepository,
                                     ConfirmationTokenRepository tokenRepository,
                                     PasswordEncoder passwordEncoder,
@@ -83,6 +86,7 @@ public class UserRegistrationService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setFrom(fromAddress);
+            if (replyTo != null && !replyTo.isBlank()) helper.setReplyTo(replyTo);
             helper.setTo(email);
             helper.setSubject("Confirm your WC Predictor account");
             helper.setText("<p>Click the link below to confirm your account:</p><p><a href=\"" + link + "\">" + link + "</a></p>", true);

@@ -32,6 +32,9 @@ public class PasswordResetController {
     @Value("${spring.mail.properties.mail.smtp.from:noreply@example.com}")
     private String fromAddress;
 
+    @Value("${spring.mail.reply-to:}")
+    private String replyTo;
+
     public PasswordResetController(UserService userService, PasswordEncoder passwordEncoder,
                                     JavaMailSender mailSender) {
         this.userService = userService;
@@ -66,6 +69,7 @@ public class PasswordResetController {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             helper.setFrom(fromAddress);
+            if (replyTo != null && !replyTo.isBlank()) helper.setReplyTo(replyTo);
             helper.setTo(user.getEmailAddress());
             helper.setSubject("Reset your WC Predictor password");
             helper.setText("<p>Click the link below to reset your password (expires in 1 hour):</p>"
