@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Status - WC Predictor 2026</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="bi bi-trophy-fill"></i> WC Predictor 2026</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active text-warning" href="/admin">Admin</a></li>
+                </ul>
+                <span class="navbar-text" sec:authentication="name"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/admin" class="btn btn-outline-secondary btn-sm mb-3"><i class="bi bi-arrow-left"></i> Back to Admin</a>
+        <h3 class="mb-4"><i class="bi bi-people-fill"></i> User Status</h3>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning text-dark"><h5 class="mb-0">Not Yet Confirmed</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Email</th></tr></thead>
+                    <tbody>
+                        <tr th:each="u : ${unconfirmed}">
+                            <td th:text="${u.emailAddress}"></td>
+                        </tr>
+                        <tr th:if="${unconfirmed == null or unconfirmed.isEmpty()}">
+                            <td class="text-muted text-center">All users confirmed.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white"><h5 class="mb-0">Confirmed — Missing Profile Details</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>Nickname</th></tr></thead>
+                    <tbody>
+                        <tr th:each="u : ${noProfile}">
+                            <td th:text="${u.emailAddress}"></td>
+                            <td th:text="${u.firstName}"></td>
+                            <td th:text="${u.lastName}"></td>
+                            <td th:text="${u.nickname}"></td>
+                        </tr>
+                        <tr th:if="${noProfile == null or noProfile.isEmpty()}">
+                            <td colspan="4" class="text-muted text-center">All confirmed users have completed their profiles.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-success text-white"><h5 class="mb-0">Complete Profile — No Predictions Yet</h5></div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead><tr><th>Name</th><th>Email</th></tr></thead>
+                    <tbody>
+                        <tr th:each="u : ${noPredictions}">
+                            <td th:text="${u.nickname != null && !u.nickname.isBlank() ? u.nickname : (u.firstName != null ? u.firstName + ' ' + u.lastName : '')}"></td>
+                            <td th:text="${u.emailAddress}"></td>
+                        </tr>
+                        <tr th:if="${noPredictions == null or noPredictions.isEmpty()}">
+                            <td colspan="2" class="text-muted text-center">All users have submitted predictions.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

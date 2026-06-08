@@ -45,7 +45,7 @@ public class Match {
 
     private LocalDateTime predictionsLockTime;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean matchDateEstimated = false;
 
     public boolean isLocked() {

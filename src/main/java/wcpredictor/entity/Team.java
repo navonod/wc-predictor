@@ -21,6 +21,8 @@ public class Team {
     @Column(length = 1)
     private String groupLetter;
 
+    private int sortOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tournament_id")
     private Tournament tournament;

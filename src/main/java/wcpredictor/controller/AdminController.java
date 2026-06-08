@@ -22,16 +22,19 @@ public class AdminController {
     private final PoolService poolService;
     private final UserService userService;
     private final TournamentService tournamentService;
+    private final PredictionService predictionService;
 
     public AdminController(TeamService teamService, MatchService matchService,
                             SettingService settingService, PoolService poolService,
-                            UserService userService, TournamentService tournamentService) {
+                            UserService userService, TournamentService tournamentService,
+                            PredictionService predictionService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
         this.poolService = poolService;
         this.userService = userService;
         this.tournamentService = tournamentService;
+        this.predictionService = predictionService;
     }
 
     @GetMapping
@@ -214,5 +217,36 @@ public class AdminController {
         }
         model.addAttribute("tournament", tournamentService.findById(id).orElseThrow());
         return "admin/tournament-import";
+    }
+
+    @GetMapping("/users")
+    public String userStatus(Model model) {
+        List<User> allUsers = userService.findAll();
+
+        List<User> unconfirmed = new ArrayList<>();
+        List<User> noProfile = new ArrayList<>();
+        List<User> noPredictions = new ArrayList<>();
+
+        for (User u : allUsers) {
+            if (u.getConfirmed() == null || !u.getConfirmed()) {
+                unconfirmed.add(u);
+                continue;
+            }
+            if (u.getFirstName() == null || u.getFirstName().isBlank()
+                    || u.getLastName() == null || u.getLastName().isBlank()
+                    || u.getNickname() == null || u.getNickname().isBlank()) {
+                noProfile.add(u);
+                continue;
+            }
+            var matchPreds = predictionService.getUserMatchPredictionScores(u.getId());
+            if (matchPreds.isEmpty()) {
+                noPredictions.add(u);
+            }
+        }
+
+        model.addAttribute("unconfirmed", unconfirmed);
+        model.addAttribute("noProfile", noProfile);
+        model.addAttribute("noPredictions", noPredictions);
+        return "admin/users";
     }
 }

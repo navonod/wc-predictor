@@ -21,26 +21,26 @@ public class DataLoader {
 
     private static final Map<Character, String[]> GROUP_TEAMS = new LinkedHashMap<>() {{
         put('A', new String[]{"Mexico", "South Africa", "South Korea", "Czech Republic"});
-        put('B', new String[]{"Canada", "Iran", "Scotland", "Sweden"});
-        put('C', new String[]{"Argentina", "Croatia", "Australia", "Turkey"});
-        put('D', new String[]{"United States", "Colombia", "Egypt", "Bosnia and Herzegovina"});
-        put('E', new String[]{"Spain", "Uruguay", "Saudi Arabia", "Haiti"});
-        put('F', new String[]{"France", "Paraguay", "Ghana", "Iraq"});
-        put('G', new String[]{"Brazil", "Netherlands", "Qatar", "Curaçao"});
-        put('H', new String[]{"Germany", "Senegal", "Uzbekistan", "Panama"});
-        put('I', new String[]{"England", "Morocco", "Tunisia", "Jordan"});
-        put('J', new String[]{"Portugal", "Ecuador", "Japan", "Cape Verde"});
-        put('K', new String[]{"Belgium", "Switzerland", "Algeria", "New Zealand"});
-        put('L', new String[]{"Norway", "Austria", "Ivory Coast", "DR Congo"});
+        put('B', new String[]{"Canada", "Bosnia and Herzegovina", "Qatar", "Switzerland"});
+        put('C', new String[]{"Brazil", "Morocco", "Haiti", "Scotland"});
+        put('D', new String[]{"United States", "Paraguay", "Australia", "Turkey"});
+        put('E', new String[]{"Germany", "Curaçao", "Ivory Coast", "Ecuador"});
+        put('F', new String[]{"Netherlands", "Japan", "Sweden", "Tunisia"});
+        put('G', new String[]{"Belgium", "Egypt", "Iran", "New Zealand"});
+        put('H', new String[]{"Spain", "Cape Verde", "Saudi Arabia", "Uruguay"});
+        put('I', new String[]{"France", "Senegal", "Iraq", "Norway"});
+        put('J', new String[]{"Argentina", "Algeria", "Austria", "Jordan"});
+        put('K', new String[]{"Portugal", "DR Congo", "Uzbekistan", "Colombia"});
+        put('L', new String[]{"England", "Croatia", "Ghana", "Panama"});
     }};
 
     private static final String[] FIFA_CODES = {
-        "MEX", "RSA", "KOR", "CZE", "CAN", "IRN", "SCO", "SWE",
-        "ARG", "CRO", "AUS", "TUR", "USA", "COL", "EGY", "BIH",
-        "ESP", "URU", "KSA", "HAI", "FRA", "PAR", "GHA", "IRQ",
-        "BRA", "NED", "QAT", "CUW", "GER", "SEN", "UZB", "PAN",
-        "ENG", "MAR", "TUN", "JOR", "POR", "ECU", "JPN", "CPV",
-        "BEL", "SUI", "ALG", "NZL", "NOR", "AUT", "CIV", "COD"
+        "MEX", "RSA", "KOR", "CZE", "CAN", "BIH", "QAT", "SUI",
+        "BRA", "MAR", "HAI", "SCO", "USA", "PAR", "AUS", "TUR",
+        "GER", "CUW", "CIV", "ECU", "NED", "JPN", "SWE", "TUN",
+        "BEL", "EGY", "IRN", "NZL", "ESP", "CPV", "KSA", "URU",
+        "FRA", "SEN", "IRQ", "NOR", "ARG", "ALG", "AUT", "JOR",
+        "POR", "COD", "UZB", "COL", "ENG", "CRO", "GHA", "PAN"
     };
 
     private static final Map<String, String> FIFACODE_MAP = new LinkedHashMap<>();
@@ -180,7 +180,27 @@ public class DataLoader {
             }
 
             if (teamRepo.count() > 0) {
-                log.info("Teams already loaded, skipping seed.");
+                log.info("Teams already loaded, migrating group assignments.");
+                int orderIdx = 0;
+                for (var entry : GROUP_TEAMS.entrySet()) {
+                    for (String teamName : entry.getValue()) {
+                        for (Team team : teamRepo.findAll()) {
+                            if (team.getName().equals(teamName)) {
+                                if (!String.valueOf(entry.getKey()).equals(team.getGroupLetter())) {
+                                    log.info("Moving {} from group {} to {}",
+                                            team.getName(), team.getGroupLetter(), entry.getKey());
+                                    team.setGroupLetter(String.valueOf(entry.getKey()));
+                                }
+                                if (team.getSortOrder() != orderIdx) {
+                                    team.setSortOrder(orderIdx);
+                                }
+                                teamRepo.save(team);
+                                break;
+                            }
+                        }
+                        orderIdx++;
+                    }
+                }
                 for (Team team : teamRepo.findAll()) {
                     if (team.getTournament() == null) {
                         team.setTournament(tournament);
@@ -192,6 +212,7 @@ public class DataLoader {
                 log.info("Seeding teams and matches...");
                 Map<String, Team> teamMap = new HashMap<>();
 
+                int idx = 0;
                 for (var entry : GROUP_TEAMS.entrySet()) {
                     char group = entry.getKey();
                     for (String teamName : entry.getValue()) {
@@ -199,8 +220,10 @@ public class DataLoader {
                         team.setName(teamName);
                         team.setGroupLetter(String.valueOf(group));
                         team.setFifaCode(FIFACODE_MAP.get(teamName));
+                        team.setSortOrder(idx);
                         team.setTournament(tournament);
                         teamMap.put(teamName, teamRepo.save(team));
+                        idx++;
                     }
                 }
 
@@ -285,7 +308,7 @@ public class DataLoader {
                 }
             }
 
-            importScheduleCsvs(tournamentRepo, matchRepo);
+            importScheduleCsvs(tournamentRepo, matchRepo, teamRepo);
 
             for (Match match : matchRepo.findAll()) {
                 var round = match.getRound();
@@ -358,7 +381,17 @@ public class DataLoader {
         };
     }
 
-    private int importScheduleCsvs(TournamentRepository tournamentRepo, MatchRepository matchRepo) {
+    private String getCorrectGroup(String teamName) {
+        for (var entry : GROUP_TEAMS.entrySet()) {
+            for (String name : entry.getValue()) {
+                if (name.equals(teamName)) return String.valueOf(entry.getKey());
+            }
+        }
+        return null;
+    }
+
+    private int importScheduleCsvs(TournamentRepository tournamentRepo, MatchRepository matchRepo,
+                                     TeamRepository teamRepo) {
         int imported = 0;
         try {
             var resolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
@@ -372,7 +405,8 @@ public class DataLoader {
                     existingByNumber.put(m.getMatchNumber(), m);
                 }
                 if (existingByNumber.containsKey(104)) {
-                    log.info("Schedule already imported (match 104 exists), skipping.");
+                    fixGroupMatchPairings(resource, matchRepo, teamRepo);
+                    log.info("Schedule already imported, fixed group match pairings only.");
                     continue;
                 }
                 Tournament t = new Tournament();
@@ -383,6 +417,22 @@ public class DataLoader {
 
                 for (Match m : matchRepo.findAll()) {
                     existingByNumber.put(m.getMatchNumber(), m);
+                }
+                Map<String, Team> teamByName = new HashMap<>();
+                Map<String, String> csvAliases = Map.of(
+                    "Czechia", "Czech Republic",
+                    "Bosnia & Herzegovina", "Bosnia and Herzegovina",
+                    "Cabo Verde", "Cape Verde",
+                    "T\u00fcrkiye", "Turkey",
+                    "Congo DR", "DR Congo"
+                );
+                for (Team team : teamRepo.findAll()) {
+                    teamByName.put(team.getName(), team);
+                    for (var alias : csvAliases.entrySet()) {
+                        if (team.getName().equals(alias.getValue())) {
+                            teamByName.put(alias.getKey(), team);
+                        }
+                    }
                 }
                 try (var reader = new java.io.BufferedReader(
                         new java.io.InputStreamReader(resource.getInputStream(),
@@ -397,6 +447,8 @@ public class DataLoader {
                         int matchNum = Integer.parseInt(cols[0].trim());
                         String utcDateStr = cols[1].trim();
                         boolean estimated = "TRUE".equalsIgnoreCase(cols[2].trim());
+                        String csvTeam1 = cols[3].trim();
+                        String csvTeam2 = cols[4].trim();
                         String venue = cols[5].trim();
                         LocalDateTime utcDate = LocalDateTime.parse(utcDateStr.replace(" ", "T"));
                         lastMatchNum = matchNum;
@@ -407,6 +459,13 @@ public class DataLoader {
                             match.setMatchDate(utcDate);
                             match.setMatchDateEstimated(estimated);
                             match.setVenue(venue);
+                            // Update group-stage team pairings from CSV
+                            if (matchNum <= 72) {
+                                Team t1 = teamByName.get(csvTeam1);
+                                Team t2 = teamByName.get(csvTeam2);
+                                if (t1 != null) match.setTeam1(t1);
+                                if (t2 != null) match.setTeam2(t2);
+                            }
                             matchRepo.save(match);
                         } else {
                             RoundType round;
@@ -437,5 +496,68 @@ public class DataLoader {
             log.error("Failed to import schedule files: {}", e.getMessage());
         }
         return imported;
+    }
+
+    private void fixGroupMatchPairings(org.springframework.core.io.Resource resource,
+                                        MatchRepository matchRepo, TeamRepository teamRepo) {
+        try {
+            Map<String, Team> teamByName = new HashMap<>();
+            Map<String, String> csvAliases = Map.of(
+                "Czechia", "Czech Republic",
+                "Bosnia & Herzegovina", "Bosnia and Herzegovina",
+                "Cabo Verde", "Cape Verde",
+                "T\u00fcrkiye", "Turkey",
+                "Congo DR", "DR Congo"
+            );
+            for (Team team : teamRepo.findAll()) {
+                teamByName.put(team.getName(), team);
+                for (var alias : csvAliases.entrySet()) {
+                    if (team.getName().equals(alias.getValue())) {
+                        teamByName.put(alias.getKey(), team);
+                    }
+                }
+            }
+
+            Map<Integer, Match> existingByNumber = new HashMap<>();
+            for (Match m : matchRepo.findAll()) {
+                existingByNumber.put(m.getMatchNumber(), m);
+            }
+
+            try (var reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(resource.getInputStream(),
+                            java.nio.charset.StandardCharsets.UTF_8))) {
+                String line;
+                boolean headerSkipped = false;
+                int fixed = 0;
+                while ((line = reader.readLine()) != null) {
+                    if (!headerSkipped) { headerSkipped = true; continue; }
+                    String[] cols = line.split(",", -1);
+                    if (cols.length < 7) continue;
+                    int matchNum = Integer.parseInt(cols[0].trim());
+                    if (matchNum > 72) break;
+
+                    String csvTeam1 = cols[3].trim();
+                    String csvTeam2 = cols[4].trim();
+                    Match match = existingByNumber.get(matchNum);
+                    if (match == null) continue;
+
+                    Team t1 = teamByName.get(csvTeam1);
+                    Team t2 = teamByName.get(csvTeam2);
+                    if (t1 != null && t2 != null) {
+                        UUID existing1 = match.getTeam1() != null ? match.getTeam1().getId() : null;
+                        UUID existing2 = match.getTeam2() != null ? match.getTeam2().getId() : null;
+                        if (!t1.getId().equals(existing1) || !t2.getId().equals(existing2)) {
+                            match.setTeam1(t1);
+                            match.setTeam2(t2);
+                            matchRepo.save(match);
+                            fixed++;
+                        }
+                    }
+                }
+                log.info("Fixed {} group match pairings from CSV", fixed);
+            }
+        } catch (Exception e) {
+            log.error("Failed to fix group match pairings: {}", e.getMessage());
+        }
     }
 }

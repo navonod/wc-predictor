@@ -17,7 +17,7 @@
                     <p class="text-muted">Predict. Compete. Win.</p>
                 </div>
 
-                <div th:if="${param.error}" class="alert alert-danger">Invalid email or password.</div>
+                <div th:if="${param.error}" class="alert alert-danger">Invalid email or password. If you just registered, check your email and confirm your account first.</div>
                 <div th:if="${param.logout}" class="alert alert-info">You have been logged out.</div>
                 <div th:if="${param.confirmed}" class="alert alert-success">Account confirmed! You can now log in.</div>
 

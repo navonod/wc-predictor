@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TeamRepository extends JpaRepository<Team, UUID> {
-    List<Team> findByGroupLetterOrderByNameAsc(String groupLetter);
-    List<Team> findByGroupLetterIsNotNullOrderByGroupLetterAscNameAsc();
-    List<Team> findAllByOrderByNameAsc();
+    List<Team> findByGroupLetterOrderBySortOrderAsc(String groupLetter);
+    List<Team> findByGroupLetterIsNotNullOrderByGroupLetterAscSortOrderAsc();
+    List<Team> findAllByOrderByGroupLetterAscSortOrderAsc();
     List<Team> findByTournamentId(UUID tournamentId);
 }
