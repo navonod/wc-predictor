@@ -171,12 +171,17 @@ public class DataLoader {
 
     private void seedAllCountries(TeamRepository teamRepo) {
         Map<String, Team> existingByCode = new HashMap<>();
+        Map<String, Team> existingByName = new HashMap<>();
         for (Team t : teamRepo.findAll()) {
             if (t.getCountryCode() != null) existingByCode.put(t.getCountryCode(), t);
+            existingByName.put(t.getName(), t);
         }
         int created = 0, updated = 0;
         for (String[] row : FIFA_COUNTRIES) {
             Team team = existingByCode.get(row[0]);
+            if (team == null) {
+                team = existingByName.get(row[1]);
+            }
             if (team == null) {
                 team = new Team();
                 team.setCountryCode(row[0]);
