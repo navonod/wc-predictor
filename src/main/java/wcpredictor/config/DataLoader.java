@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
@@ -80,7 +82,8 @@ public class DataLoader {
                                        PasswordEncoder passwordEncoder, PoolRepository poolRepo,
                                        TournamentRepository tournamentRepo,
                                        GroupAdvancementPredictionRepository gapRepo,
-                                       TournamentTeamRepository ttRepo) {
+                                       TournamentTeamRepository ttRepo,
+                                       EntityManager entityManager) {
         return args -> {
             seedAllCountries(teamRepo);
 
@@ -94,9 +97,9 @@ public class DataLoader {
                 log.info("Created default tournament: {}", tournament.getName());
             }
 
-            migrateTournamentTeams(teamRepo, tournamentRepo, ttRepo, tournament);
+            migrateTournamentTeams(ttRepo, tournament, entityManager);
 
-            fixOverstuffedGroupPredictions(gapRepo, teamRepo, userRepo);
+            fixOverstuffedGroupPredictions(gapRepo, teamRepo, userRepo, ttRepo, tournamentRepo);
 
             for (Match match : matchRepo.findAll()) {
                 boolean changed = false;
@@ -167,45 +170,64 @@ public class DataLoader {
     }
 
     private void seedAllCountries(TeamRepository teamRepo) {
-        if (teamRepo.count() > 0) return;
-        log.info("Seeding FIFA countries...");
-        for (String[] row : FIFA_COUNTRIES) {
-            Team team = new Team();
-            team.setCountryCode(row[0]);
-            team.setName(row[1]);
-            team.setFifaCode(row[0]);
-            teamRepo.save(team);
+        Map<String, Team> existingByCode = new HashMap<>();
+        for (Team t : teamRepo.findAll()) {
+            if (t.getCountryCode() != null) existingByCode.put(t.getCountryCode(), t);
+            if (t.getFifaCode() != null) existingByCode.putIfAbsent(t.getFifaCode(), t);
         }
-        log.info("Seeded {} FIFA countries", FIFA_COUNTRIES.length);
+        int created = 0, updated = 0;
+        for (String[] row : FIFA_COUNTRIES) {
+            Team team = existingByCode.get(row[0]);
+            if (team == null) {
+                team = new Team();
+                team.setCountryCode(row[0]);
+                team.setName(row[1]);
+                team.setFifaCode(row[0]);
+                teamRepo.save(team);
+                created++;
+            } else if (team.getCountryCode() == null) {
+                team.setCountryCode(row[0]);
+                teamRepo.save(team);
+                updated++;
+            }
+        }
+        if (created > 0 || updated > 0) {
+            log.info("FIFA countries: {} created, {} updated with country codes", created, updated);
+        } else {
+            log.info("FIFA countries already seeded");
+        }
     }
 
-    private void migrateTournamentTeams(TeamRepository teamRepo, TournamentRepository tournamentRepo,
-                                         TournamentTeamRepository ttRepo, Tournament fallbackTournament) {
+    private void migrateTournamentTeams(TournamentTeamRepository ttRepo, Tournament fallbackTournament,
+                                         EntityManager em) {
         if (ttRepo.count() > 0) return;
         log.info("Migrating teams to TournamentTeam join table...");
 
-        // Try raw SQL for existing data
         try {
-            var em = teamRepo.getClass().getMethod("getEntityManager").invoke(teamRepo);
-            if (em == null) throw new Exception("no EM");
-            var q = ((jakarta.persistence.EntityManager)em).createNativeQuery(
+            int rows = em.createNativeQuery(
                 "INSERT INTO tournament_teams (id, tournament_id, team_id, group_letter, sort_order) " +
                 "SELECT hex(randomblob(16)), tournament_id, id, group_letter, sort_order FROM teams " +
-                "WHERE group_letter IS NOT NULL");
-            int rows = q.executeUpdate();
+                "WHERE group_letter IS NOT NULL").executeUpdate();
             if (rows > 0) {
                 log.info("SQL migration: migrated {} tournament-team rows", rows);
+                em.createNativeQuery("ALTER TABLE teams DROP COLUMN group_letter").executeUpdate();
+                em.createNativeQuery("ALTER TABLE teams DROP COLUMN sort_order").executeUpdate();
+                em.createNativeQuery("ALTER TABLE teams DROP COLUMN tournament_id").executeUpdate();
+                log.info("Dropped orphan columns from teams table");
                 return;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.warn("SQL migration failed (column may not exist yet): {}", e.getMessage());
+        }
 
-        // Fallback: assign GROUP_TEAMS to default tournament
-        log.info("No old data found, assigning GROUP_TEAMS to default tournament...");
+        log.info("Assigning GROUP_TEAMS to default tournament...");
         int idx = 0;
         for (var entry : GROUP_TEAMS.entrySet()) {
             for (String teamName : entry.getValue()) {
-                Team team = teamRepo.findAll().stream()
-                        .filter(t -> t.getName().equals(teamName)).findFirst().orElse(null);
+                Team team = null;
+                for (Team t : findAllTeams(em)) {
+                    if (t.getName().equals(teamName)) { team = t; break; }
+                }
                 if (team != null) {
                     TournamentTeam tt = new TournamentTeam();
                     tt.setTournament(fallbackTournament);
@@ -218,6 +240,11 @@ public class DataLoader {
             }
         }
         log.info("Assigned GROUP_TEAMS to default tournament");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Team> findAllTeams(EntityManager em) {
+        return em.createQuery("SELECT t FROM Team t").getResultList();
     }
 
     private static final Map<Character, String[]> GROUP_TEAMS = new LinkedHashMap<>() {{
@@ -236,7 +263,19 @@ public class DataLoader {
     }};
 
     private void fixOverstuffedGroupPredictions(GroupAdvancementPredictionRepository gapRepo,
-                                                  TeamRepository teamRepo, UserRepository userRepo) {
+                                                  TeamRepository teamRepo, UserRepository userRepo,
+                                                  TournamentTeamRepository ttRepo,
+                                                  TournamentRepository tournamentRepo) {
+        Tournament tournament = tournamentRepo.findAll().stream().findFirst().orElse(null);
+        if (tournament == null) return;
+
+        Map<UUID, Character> teamGroupMap = new HashMap<>();
+        for (var tt : ttRepo.findByTournamentId(tournament.getId())) {
+            if (tt.getGroupLetter() != null && tt.getGroupLetter().length() == 1) {
+                teamGroupMap.put(tt.getTeam().getId(), tt.getGroupLetter().charAt(0));
+            }
+        }
+
         Map<UUID, List<GroupAdvancementPrediction>> byUser = new HashMap<>();
         for (var gap : gapRepo.findAll()) {
             byUser.computeIfAbsent(gap.getUser().getId(), k -> new ArrayList<>()).add(gap);
@@ -255,8 +294,8 @@ public class DataLoader {
             Map<Character, List<Team>> byGroup = new LinkedHashMap<>();
             for (char g = 'A'; g <= 'L'; g++) byGroup.put(g, new ArrayList<>());
             for (Team t : teams) {
-                // Group letter is now on TournamentTeam, skip for now
-                if (t.getCountryCode() != null) byGroup.get(t.getCountryCode().charAt(0)).add(t);
+                Character g = teamGroupMap.get(t.getId());
+                if (g != null) byGroup.get(g).add(t);
             }
 
             boolean needsFix = false;
