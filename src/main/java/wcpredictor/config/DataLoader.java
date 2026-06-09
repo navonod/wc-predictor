@@ -173,7 +173,6 @@ public class DataLoader {
         Map<String, Team> existingByCode = new HashMap<>();
         for (Team t : teamRepo.findAll()) {
             if (t.getCountryCode() != null) existingByCode.put(t.getCountryCode(), t);
-            if (t.getFifaCode() != null) existingByCode.putIfAbsent(t.getFifaCode(), t);
         }
         int created = 0, updated = 0;
         for (String[] row : FIFA_COUNTRIES) {
@@ -182,7 +181,6 @@ public class DataLoader {
                 team = new Team();
                 team.setCountryCode(row[0]);
                 team.setName(row[1]);
-                team.setFifaCode(row[0]);
                 teamRepo.save(team);
                 created++;
             } else if (team.getCountryCode() == null) {
@@ -213,6 +211,7 @@ public class DataLoader {
                 em.createNativeQuery("ALTER TABLE teams DROP COLUMN group_letter").executeUpdate();
                 em.createNativeQuery("ALTER TABLE teams DROP COLUMN sort_order").executeUpdate();
                 em.createNativeQuery("ALTER TABLE teams DROP COLUMN tournament_id").executeUpdate();
+                try { em.createNativeQuery("ALTER TABLE teams DROP COLUMN fifa_code").executeUpdate(); } catch (Exception ignored) {}
                 log.info("Dropped orphan columns from teams table");
                 return;
             }

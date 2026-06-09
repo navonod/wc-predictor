@@ -53,7 +53,7 @@
                             <td th:text="${#temporals.format(match.matchDate, 'MMM dd HH:mm')}"></td>
                             <td>
                                 <span th:text="${match.team1?.name}"></span>
-                                <small class="text-muted" th:text="${match.team1?.fifaCode}"></small>
+                                <small class="text-muted" th:text="${match.team1?.countryCode}"></small>
                             </td>
                             <td>
                                 <span th:if="${match.team1Score != null}" th:text="${match.team1Score + ' - ' + match.team2Score}"></span>
@@ -61,7 +61,7 @@
                             </td>
                             <td>
                                 <span th:text="${match.team2?.name}"></span>
-                                <small class="text-muted" th:text="${match.team2?.fifaCode}"></small>
+                                <small class="text-muted" th:text="${match.team2?.countryCode}"></small>
                             </td>
                             <td class="small text-muted" th:text="${match.venue}"></td>
                             <td>

@@ -45,7 +45,7 @@
                                 <input class="form-check-input group-check" type="checkbox" name="teamId"
                                        th:value="${team.id}"
                                        th:checked="${predictedTeamIds.contains(team.id.toString())}">
-                                <label class="form-check-label" th:text="${team.name + ' (' + team.fifaCode + ')'}"></label>
+                                <label class="form-check-label" th:text="${team.name + ' (' + team.countryCode + ')'}"></label>
                             </div>
                             <small class="text-muted">Select 2-3 teams to advance</small>
                         </div>

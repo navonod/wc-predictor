@@ -55,10 +55,10 @@ public class AdminController {
     }
 
     @PostMapping("/teams/add")
-    public String addTeam(@RequestParam String name, @RequestParam String fifaCode) {
+    public String addTeam(@RequestParam String name, @RequestParam String countryCode) {
         Team team = new Team();
         team.setName(name);
-        team.setFifaCode(fifaCode);
+        team.setCountryCode(countryCode);
         teamService.save(team);
         return "redirect:/admin/teams";
     }

@@ -62,14 +62,14 @@
                             <div th:if="${match.locked}" class="text-center py-3">
                                 <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap mb-2">
                                     <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.fifaCode}"></span>
+                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
                                     <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
                                     <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
                                     <span class="text-muted">&ndash;</span>
                                     <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
                                     <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
                                     <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.fifaCode}"></span>
+                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
                                 </div>
                                 <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Predictions are closed for this match</span>
                             </div>
@@ -80,7 +80,7 @@
                                 <div>
                                     <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
                                     <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.fifaCode}"></span>
+                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
                                     <input type="number" class="form-control score-input"
                                            name="team1Score" min="0" max="10"
                                            th:value="${scores[match.id] != null ? scores[match.id][0] : ''}"
@@ -91,7 +91,7 @@
                                            th:value="${scores[match.id] != null ? scores[match.id][1] : ''}"
                                            th:attr="data-initial=${scores[match.id] != null ? scores[match.id][1] : ''}">
                                     <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.fifaCode}"></span>
+                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
                                     </div>
                                     <div class="text-end mt-1">
                                         <button type="button" class="btn btn-sm border-0 fs-5 px-2 dice-btn"

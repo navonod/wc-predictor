@@ -51,7 +51,7 @@
                             <td th:text="${#temporals.format(match.matchDate, 'MMM dd, HH:mm')}"></td>
                             <td>
                                 <span th:text="${match.team1?.name}"></span>
-                                <span class="text-muted small" th:text="${match.team1?.fifaCode}"></span>
+                                <span class="text-muted small" th:text="${match.team1?.countryCode}"></span>
                             </td>
                             <td>
                                 <input type="number" class="form-control form-control-sm d-inline" style="width:60px"
@@ -66,7 +66,7 @@
                             </td>
                             <td>
                                 <span th:text="${match.team2?.name}"></span>
-                                <span class="text-muted small" th:text="${match.team2?.fifaCode}"></span>
+                                <span class="text-muted small" th:text="${match.team2?.countryCode}"></span>
                             </td>
                             <td class="small text-muted" th:text="${match.venue}"></td>
                         </tr>

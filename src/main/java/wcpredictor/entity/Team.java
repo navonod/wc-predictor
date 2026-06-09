@@ -17,9 +17,6 @@ public class Team {
     @Column(nullable = false)
     private String name;
 
-    @Column(length = 4)
-    private String fifaCode;
-
     @Column(length = 3, unique = true)
     private String countryCode;
 }
