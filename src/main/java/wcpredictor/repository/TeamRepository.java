@@ -8,5 +8,4 @@ import java.util.UUID;
 
 public interface TeamRepository extends JpaRepository<Team, UUID> {
     Optional<Team> findByCountryCode(String countryCode);
-    List<Team> findByTournamentId(UUID tournamentId);
 }

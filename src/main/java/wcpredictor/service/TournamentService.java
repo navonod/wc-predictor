@@ -23,18 +23,18 @@ public class TournamentService {
     private final MatchRepository matchRepository;
     private final MatchPredictionRepository matchPredictionRepo;
     private final SimulatedMatchRepository simulatedMatchRepo;
-    private final TeamRepository teamRepository;
+    private final TournamentTeamRepository tournamentTeamRepo;
 
     public TournamentService(TournamentRepository tournamentRepository,
                               MatchRepository matchRepository,
                               MatchPredictionRepository matchPredictionRepo,
                               SimulatedMatchRepository simulatedMatchRepo,
-                              TeamRepository teamRepository) {
+                              TournamentTeamRepository tournamentTeamRepo) {
         this.tournamentRepository = tournamentRepository;
         this.matchRepository = matchRepository;
         this.matchPredictionRepo = matchPredictionRepo;
         this.simulatedMatchRepo = simulatedMatchRepo;
-        this.teamRepository = teamRepository;
+        this.tournamentTeamRepo = tournamentTeamRepo;
     }
 
     public List<Tournament> findAll() {
@@ -74,12 +74,12 @@ public class TournamentService {
             matchRepository.delete(match);
         }
 
-        List<Team> teams = teamRepository.findByTournamentId(id);
-        teamRepository.deleteAll(teams);
+        var ttEntries = tournamentTeamRepo.findByTournamentId(id);
+        tournamentTeamRepo.deleteAll(ttEntries);
 
         tournamentRepository.delete(tournament);
-        log.info("Deleted tournament '{}' with {} matches and {} teams",
-                tournament.getName(), matches.size(), teams.size());
+        log.info("Deleted tournament '{}' with {} matches and {} team assignments",
+                tournament.getName(), matches.size(), ttEntries.size());
     }
 
     @Transactional
