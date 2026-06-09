@@ -67,7 +67,7 @@
                         <tr th:each="gs, stat : ${bestThirds}">
                             <td th:text="${stat.index + 1}"></td>
                             <td th:text="${gs.team.name}"></td>
-                            <td th:text="${gs.team.groupLetter}"></td>
+                            <td th:text="${gs.groupLetter}"></td>
                             <td th:text="${gs.points}"></td>
                             <td><span th:if="${gs.goalDiff > 0}">+</span><span th:text="${gs.goalDiff}"></span></td>
                             <td th:text="${gs.goalsFor}"></td>

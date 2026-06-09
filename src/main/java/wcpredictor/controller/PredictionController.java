@@ -18,13 +18,16 @@ public class PredictionController {
     private final PredictionService predictionService;
     private final TeamService teamService;
     private final UserService userService;
+    private final TournamentService tournamentService;
 
     public PredictionController(MatchService matchService, PredictionService predictionService,
-                                 TeamService teamService, UserService userService) {
+                                 TeamService teamService, UserService userService,
+                                 TournamentService tournamentService) {
         this.matchService = matchService;
         this.predictionService = predictionService;
         this.teamService = teamService;
         this.userService = userService;
+        this.tournamentService = tournamentService;
     }
 
     private User getCurrentUser(Principal principal) {
@@ -34,9 +37,11 @@ public class PredictionController {
     @GetMapping("/predict")
     public String predictDashboard(Model model, Principal principal) {
         User user = getCurrentUser(principal);
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
         model.addAttribute("hasTournamentPrediction", predictionService.getUserTournamentPrediction(user.getId()).isPresent());
         model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(user.getId()));
-        model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId()));
+        model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId(), tournamentId));
         return "predict";
     }
 
@@ -78,15 +83,13 @@ public class PredictionController {
     @GetMapping("/predict/group")
     public String groupPredictions(Model model, Principal principal) {
         User user = getCurrentUser(principal);
-        List<Team> allTeams = teamService.getGroupedTeams();
-
-        Map<Character, List<Team>> groups = new LinkedHashMap<>();
-        for (Team t : allTeams) {
-            if (t.getGroupLetter() != null) {
-                groups.computeIfAbsent(t.getGroupLetter().charAt(0), k -> new ArrayList<>()).add(t);
-            }
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(wcpredictor.entity.Tournament::getId).orElse(null);
+        if (tournamentId == null) {
+            model.addAttribute("groups", new LinkedHashMap<>());
+        } else {
+            model.addAttribute("groups", teamService.getGroupedTeams(tournamentId));
         }
-        model.addAttribute("groups", groups);
 
         var predictions = predictionService.getUserGroupAdvancementPredictions(user.getId());
         model.addAttribute("predictedTeamIds", predictions.stream()
@@ -99,8 +102,10 @@ public class PredictionController {
     public String saveGroupPredictions(@RequestParam("teamId") List<UUID> teamIds, Principal principal,
                                         RedirectAttributes ra) {
         User user = getCurrentUser(principal);
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
         try {
-            predictionService.saveGroupAdvancementPredictions(user, teamIds);
+            predictionService.saveGroupAdvancementPredictions(user, teamIds, tournamentId);
         } catch (IllegalArgumentException e) {
             ra.addFlashAttribute("error", e.getMessage());
             return "redirect:/predict/group";

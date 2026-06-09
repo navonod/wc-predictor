@@ -39,7 +39,8 @@ public class AdminController {
 
     @GetMapping
     public String adminDashboard(Model model) {
-        model.addAttribute("teams", teamService.getGroupedTeams());
+        UUID tid = tournamentService.findAll().stream().findFirst().map(Tournament::getId).orElse(null);
+        model.addAttribute("teams", tid != null ? teamService.getTeamsByTournament(tid) : List.of());
         model.addAttribute("roundTypes", matchService.getAllRoundTypes());
         model.addAttribute("openRounds", matchService.getOpenRounds());
         model.addAttribute("matchesByRound", matchService.getAllMatchesGroupedByRound());
@@ -48,17 +49,16 @@ public class AdminController {
 
     @GetMapping("/teams")
     public String manageTeams(Model model) {
-        model.addAttribute("teams", teamService.getGroupedTeams());
+        UUID tid = tournamentService.findAll().stream().findFirst().map(Tournament::getId).orElse(null);
+        model.addAttribute("teams", tid != null ? teamService.getTeamsByTournament(tid) : List.of());
         return "admin/teams";
     }
 
     @PostMapping("/teams/add")
-    public String addTeam(@RequestParam String name, @RequestParam String fifaCode,
-                          @RequestParam(required = false) String groupLetter) {
+    public String addTeam(@RequestParam String name, @RequestParam String fifaCode) {
         Team team = new Team();
         team.setName(name);
         team.setFifaCode(fifaCode);
-        team.setGroupLetter(groupLetter != null && !groupLetter.isBlank() ? groupLetter : null);
         teamService.save(team);
         return "redirect:/admin/teams";
     }

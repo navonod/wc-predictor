@@ -28,37 +28,30 @@
             <div class="card-header"><h5 class="mb-0">Add Team</h5></div>
             <div class="card-body">
                 <form method="post" th:action="@{/admin/teams/add}" class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-5">
                         <label class="form-label">Team Name</label>
                         <input type="text" class="form-control" name="name" required>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label">FIFA Code</label>
                         <input type="text" class="form-control" name="fifaCode" maxlength="4" placeholder="e.g. BRA">
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Group</label>
-                        <select class="form-select" name="groupLetter">
-                            <option value="">None</option>
-                            <option th:each="g : ${'ABCDEFGHIJKL'.split('')}" th:value="${g}" th:text="${g}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary">Add Team</button>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i> Add Team</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-md-6 mb-3" th:each="team : ${teams}" th:if="${team.groupLetter != null}">
+            <div class="col-md-6 mb-3" th:each="team : ${teams}">
                 <div class="card">
                     <div class="card-body py-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong th:text="${team.name}"></strong>
-                                <span class="badge bg-secondary ms-2" th:text="'Group ' + ${team.groupLetter}"></span>
-                                <small class="text-muted ms-2" th:text="${team.fifaCode}"></small>
+                                <small class="text-muted ms-2" th:text="${team.countryCode}"></small>
                             </div>
                             <form method="post" th:action="@{/admin/teams/delete}" onsubmit="return confirm('Delete this team?')">
                                 <input type="hidden" name="id" th:value="${team.id}">

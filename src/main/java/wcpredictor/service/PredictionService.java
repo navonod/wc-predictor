@@ -85,16 +85,16 @@ public class PredictionService {
     }
 
     @Transactional
-    public void saveGroupAdvancementPredictions(User user, List<UUID> advancingTeamIds) {
+    public void saveGroupAdvancementPredictions(User user, List<UUID> advancingTeamIds, UUID tournamentId) {
         Map<Character, Integer> groupCounts = new LinkedHashMap<>();
         for (char g = 'A'; g <= 'L'; g++) {
             groupCounts.put(g, 0);
         }
 
         for (UUID teamId : advancingTeamIds) {
-            var team = teamService.findById(teamId);
-            if (team.isPresent() && team.get().getGroupLetter() != null) {
-                char g = team.get().getGroupLetter().charAt(0);
+            var tt = teamService.getTournamentTeam(tournamentId, teamId);
+            if (tt.isPresent() && tt.get().getGroupLetter() != null) {
+                char g = tt.get().getGroupLetter().charAt(0);
                 groupCounts.merge(g, 1, Integer::sum);
             }
         }
@@ -148,12 +148,12 @@ public class PredictionService {
                         p -> new int[]{p.getTeam1Score(), p.getTeam2Score()}));
     }
 
-    public Map<Character, List<GroupStanding>> getUserGroupStandings(UUID userId) {
+    public Map<Character, List<GroupStanding>> getUserGroupStandings(UUID userId, UUID tournamentId) {
         Map<UUID, int[]> scores = getUserMatchPredictionScores(userId);
         Map<Character, List<GroupStanding>> standings = new LinkedHashMap<>();
 
         for (char group = 'A'; group <= 'L'; group++) {
-            List<Team> teams = teamService.getTeamsByGroup(String.valueOf(group));
+            List<Team> teams = teamService.getTeamsByGroup(tournamentId, String.valueOf(group));
             if (teams.isEmpty()) continue;
             List<Match> matches = matchRepository.findByGroupLetterOrderByMatchDateAsc(String.valueOf(group));
 
@@ -184,12 +184,13 @@ public class PredictionService {
             List<GroupStanding> groupStandings = new ArrayList<>();
             for (Team team : teams) {
                 int[] r = records.get(team.getId());
-                groupStandings.add(new GroupStanding(team, r[0], r[1], r[2], r[3], r[4], r[5], 0));
+                groupStandings.add(new GroupStanding(team, group, r[0], r[1], r[2], r[3], r[4], r[5], 0));
             }
             groupStandings.sort(Comparator.naturalOrder());
             for (int i = 0; i < groupStandings.size(); i++) {
                 groupStandings.set(i, new GroupStanding(
                         groupStandings.get(i).getTeam(),
+                        group,
                         groupStandings.get(i).getPlayed(),
                         groupStandings.get(i).getWon(),
                         groupStandings.get(i).getDrawn(),

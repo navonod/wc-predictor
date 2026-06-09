@@ -81,3 +81,44 @@ Match No,Date/Time in UTC,Estimated Time,Team 1,Team 2,Venue,Local Time,Timezone
 ### Timezone handling
 
 All match dates are stored in UTC. The CSV's `Date/Time in UTC` column is parsed directly — no timezone conversion needed. The `matchDateEstimated` flag is set per-match from the CSV's `Estimated Time` column. Predictions lock at the earliest kickoff time per round type (Matchday 1, 2, 3, or knockout round).
+
+## Backups
+
+Automated daily database backups via `rclone` to Google Drive.
+
+### Setup
+
+1. **Install rclone:**
+   ```bash
+   sudo apt install rclone
+   ```
+
+2. **Configure Google Drive access:**
+   ```bash
+   rclone config
+   ```
+   - Name the remote: `gdrive`
+   - Type: `drive`
+   - Follow the OAuth flow (opens browser to grant access)
+
+3. **Create the backup folder in Google Drive:** `wc-predictor-backups`
+
+4. **Test the backup script:**
+   ```bash
+   cd ~/wc-predictor
+   chmod +x scripts/backup-db.sh
+   ./scripts/backup-db.sh
+   ```
+
+5. **Schedule daily backups at 3am:**
+   ```
+   crontab -e
+   0 3 * * * /home/wcpredictor/wc-predictor/scripts/backup-db.sh
+   ```
+
+### How it works
+
+- `scripts/backup-db.sh` copies the SQLite database from the Docker volume
+- Timestamped backups are stored locally in `/home/wcpredictor/backups/` (30-day retention)
+- `rclone` syncs the backup directory to Google Drive
+- If rclone isn't configured, backups stay local only

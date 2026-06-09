@@ -5,6 +5,7 @@ import wcpredictor.entity.Team;
 public class GroupStanding implements Comparable<GroupStanding> {
 
     private final Team team;
+    private final char groupLetter;
     private final int played;
     private final int won;
     private final int drawn;
@@ -15,9 +16,10 @@ public class GroupStanding implements Comparable<GroupStanding> {
     private final int points;
     private final int position;
 
-    public GroupStanding(Team team, int played, int won, int drawn, int lost,
+    public GroupStanding(Team team, char groupLetter, int played, int won, int drawn, int lost,
                          int goalsFor, int goalsAgainst, int position) {
         this.team = team;
+        this.groupLetter = groupLetter;
         this.played = played;
         this.won = won;
         this.drawn = drawn;
@@ -30,6 +32,7 @@ public class GroupStanding implements Comparable<GroupStanding> {
     }
 
     public Team getTeam() { return team; }
+    public char getGroupLetter() { return groupLetter; }
     public int getPlayed() { return played; }
     public int getWon() { return won; }
     public int getDrawn() { return drawn; }

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "tournaments")
@@ -22,4 +22,7 @@ public class Tournament {
 
     @Column(nullable = false)
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "tournament")
+    private List<TournamentTeam> tournamentTeams = new ArrayList<>();
 }

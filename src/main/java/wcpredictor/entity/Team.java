@@ -1,12 +1,14 @@
 package wcpredictor.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.util.UUID;
 
 @Entity
 @Table(name = "teams")
-@Data
+@Getter
+@Setter
 public class Team {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -18,13 +20,6 @@ public class Team {
     @Column(length = 4)
     private String fifaCode;
 
-    @Column(length = 1)
-    private String groupLetter;
-
-    @Column(columnDefinition = "integer default 0")
-    private int sortOrder;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tournament_id")
-    private Tournament tournament;
+    @Column(length = 3, unique = true)
+    private String countryCode;
 }

@@ -24,16 +24,24 @@ public class GroupStageSimulationService {
     private final MatchRepository matchRepository;
     private final SimulatedMatchRepository simulatedRepo;
     private final RoundOf32CombinationService combinationService;
+    private final TournamentService tournamentService;
 
     public GroupStageSimulationService(MatchService matchService, TeamService teamService,
                                         MatchRepository matchRepository,
                                         SimulatedMatchRepository simulatedRepo,
-                                        RoundOf32CombinationService combinationService) {
+                                        RoundOf32CombinationService combinationService,
+                                        TournamentService tournamentService) {
         this.matchService = matchService;
         this.teamService = teamService;
         this.matchRepository = matchRepository;
         this.simulatedRepo = simulatedRepo;
         this.combinationService = combinationService;
+        this.tournamentService = tournamentService;
+    }
+
+    private UUID getFirstTournamentId() {
+        return tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
     }
 
     @Transactional
@@ -89,9 +97,10 @@ public class GroupStageSimulationService {
     public Map<Character, List<GroupStanding>> getUserStandings(User user) {
         Map<UUID, int[]> scores = getUserScores(user);
         Map<Character, List<GroupStanding>> standings = new LinkedHashMap<>();
+        UUID tournamentId = getFirstTournamentId();
 
         for (char group = 'A'; group <= 'L'; group++) {
-            List<Team> teams = teamService.getTeamsByGroup(String.valueOf(group));
+            List<Team> teams = teamService.getTeamsByGroup(tournamentId, String.valueOf(group));
             if (teams.isEmpty()) continue;
             List<Match> matches = matchRepository.findByGroupLetterOrderByMatchDateAsc(String.valueOf(group));
 
@@ -122,12 +131,13 @@ public class GroupStageSimulationService {
             List<GroupStanding> groupStandings = new ArrayList<>();
             for (Team team : teams) {
                 int[] r = records.get(team.getId());
-                groupStandings.add(new GroupStanding(team, r[0], r[1], r[2], r[3], r[4], r[5], 0));
+                groupStandings.add(new GroupStanding(team, group, r[0], r[1], r[2], r[3], r[4], r[5], 0));
             }
             groupStandings.sort(Comparator.naturalOrder());
             for (int i = 0; i < groupStandings.size(); i++) {
                 groupStandings.set(i, new GroupStanding(
                         groupStandings.get(i).getTeam(),
+                        group,
                         groupStandings.get(i).getPlayed(),
                         groupStandings.get(i).getWon(),
                         groupStandings.get(i).getDrawn(),
@@ -164,7 +174,7 @@ public class GroupStageSimulationService {
         if (bestThirds.size() < 8) return List.of();
 
         Set<Character> thirdPlaceGroups = bestThirds.stream()
-                .map(gs -> gs.getTeam().getGroupLetter().charAt(0))
+                .map(gs -> gs.getGroupLetter())
                 .collect(Collectors.toSet());
 
         var optionOpt = combinationService.findOption(thirdPlaceGroups);
