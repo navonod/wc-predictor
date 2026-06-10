@@ -35,6 +35,7 @@
             <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Profile</h5>
                 <button th:if="${isAdmin || isSelf}" id="edit-btn" class="btn btn-outline-light btn-sm" title="Edit profile"><i class="bi bi-pencil"></i></button>
+                <button id="save-btn" class="btn btn-success btn-sm d-none" type="button"><i class="bi bi-check-lg"></i> Save</button>
             </div>
             <div class="card-body">
                 <form method="post" th:action="@{/player/{id}/edit(id=${player.id})}" id="profile-form">
@@ -57,9 +58,6 @@
                     <div class="mb-3">
                         <label class="form-label text-muted small">Joined</label>
                         <input type="text" class="form-control" th:value="${player.createdAt != null ? #temporals.format(player.createdAt, 'MMM d, yyyy') : 'Unknown'}" disabled>
-                    </div>
-                    <div class="d-none" id="save-row">
-                        <button type="submit" id="save-btn" class="btn btn-success"><i class="bi bi-check-lg"></i> Save</button>
                     </div>
                 </form>
             </div>
@@ -92,12 +90,13 @@
                     inp.disabled = false;
                 });
                 editBtn.classList.add('d-none');
-                document.getElementById('save-row').classList.remove('d-none');
+                saveBtn.classList.remove('d-none');
             });
 
-            document.getElementById('profile-form').addEventListener('submit', function() {
+            saveBtn.addEventListener('click', function() {
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+                document.getElementById('profile-form').submit();
             });
         }
     </script>
