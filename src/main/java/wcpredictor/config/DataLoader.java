@@ -143,6 +143,7 @@ public class DataLoader {
                 admin.setEncryptedPassword(passwordEncoder.encode("password"));
                 admin.setAdmin(true);
                 admin.setConfirmed(true);
+                admin.setCreatedAt(Instant.now());
                 userRepo.save(admin);
                 log.info("Admin user created.");
             } else {

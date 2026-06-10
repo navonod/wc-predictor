@@ -64,7 +64,9 @@
                             <span th:if="${iterStat.index == 2}" class="fs-4"><i class="bi bi-trophy-fill text-info"></i></span>
                             <span th:if="${iterStat.index > 2}" th:text="${iterStat.index + 1}"></span>
                         </td>
-                        <td th:text="${entry.displayName}"></td>
+                        <td>
+                            <a th:href="@{/player/{id}(id=${entry.userId})}" class="text-decoration-none" th:text="${entry.displayName}"></a>
+                        </td>
                         <td class="text-end" th:text="${#numbers.formatDecimal(entry.matchPoints, 0, 'COMMA', 1, 'POINT')}"></td>
                         <td class="text-end" th:text="${#numbers.formatDecimal(entry.awardPoints, 0, 'COMMA', 1, 'POINT')}"></td>
                         <td class="text-end" th:text="${#numbers.formatDecimal(entry.groupPoints, 0, 'COMMA', 1, 'POINT')}"></td>

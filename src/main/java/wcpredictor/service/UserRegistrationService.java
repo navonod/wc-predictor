@@ -65,6 +65,7 @@ public class UserRegistrationService {
         User user = existing.orElseGet(() -> {
             User u = new User();
             u.setConfirmed(false);
+            u.setCreatedAt(Instant.now());
             return u;
         });
         user.setEmailAddress(email);

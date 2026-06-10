@@ -93,15 +93,30 @@ Automated daily database backups via `rclone` to Google Drive.
    sudo apt install rclone
    ```
 
-2. **Configure Google Drive access:**
+2. **Configure Google Drive access (headless server):**
+
+   On your **desktop** (which has a browser):
+   ```bash
+   rclone authorize "drive"
+   ```
+   This opens a browser, you grant access, then it prints a long token. Copy it.
+
+   On the **VM**:
    ```bash
    rclone config
+   # n (new remote)
+   # name: gdrive
+   # type: drive
+   # client_id, client_secret, scope: press Enter (accept defaults)
+   # service_account_file: press Enter
+   # Edit advanced config: n
+   # Use auto config: n
+   # Paste the token from your desktop
+   # Team drive: n
+   # Keep remote as-is: y
    ```
-   - Name the remote: `gdrive`
-   - Type: `drive`
-   - Follow the OAuth flow (opens browser to grant access)
 
-3. **Create the backup folder in Google Drive:** `wc-predictor-backups`
+3. **Create the backup folder in Google Drive:** `backups/wc-predictor`
 
 4. **Test the backup script:**
    ```bash
@@ -118,7 +133,11 @@ Automated daily database backups via `rclone` to Google Drive.
 
 ### How it works
 
-- `scripts/backup-db.sh` copies the SQLite database from the Docker volume
+- `scripts/backup-db.sh` copies the SQLite database from the Docker volume to a timestamped file
+- Backups are stored locally in `/home/wcpredictor/backups/` with 30-day retention (older files auto-pruned)
+- `rclone` syncs the backup directory to the `wc-predictor-backups` folder in Google Drive
+- If rclone isn't configured, backups stay local only
+- The script uses `docker compose cp` to pull the live database from the running container; if the container is down, it falls back to reading directly from the Docker volume mount point
 - Timestamped backups are stored locally in `/home/wcpredictor/backups/` (30-day retention)
 - `rclone` syncs the backup directory to Google Drive
 - If rclone isn't configured, backups stay local only
