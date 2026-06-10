@@ -2,6 +2,7 @@ package wcpredictor.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,21 +23,18 @@ public class PlayerController {
     }
 
     @GetMapping("/player/{id}")
-    public String viewPlayer(@PathVariable UUID id, Model model,
-                              @ModelAttribute("currentUser") User viewer) {
-        var userOpt = userService.findById(id);
-        if (userOpt.isEmpty()) return "redirect:/leaderboard";
-        var user = userOpt.get();
+    public String viewPlayer(@PathVariable UUID id, Model model) {
+        var targetOpt = userService.findById(id);
+        if (targetOpt.isEmpty()) return "redirect:/leaderboard";
+        var target = targetOpt.get();
 
-        boolean isSelf = viewer != null && viewer.getId().equals(id);
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var viewer = auth != null ? userService.findByEmailAddress(auth.getName()).orElse(null) : null;
+
+        boolean isSelf = viewer != null && viewer.getId().equals(target.getId());
         boolean isAdmin = viewer != null && viewer.isAdmin();
-        log.info("Player page: viewer={} {} target={} {} isSelf={} isAdmin={}",
-                viewer != null ? viewer.getEmailAddress() : "null",
-                viewer != null ? viewer.getId() : "null",
-                user.getEmailAddress(), user.getId(),
-                isSelf, isAdmin);
 
-        model.addAttribute("player", user);
+        model.addAttribute("player", target);
         model.addAttribute("isSelf", isSelf);
         model.addAttribute("isAdmin", isAdmin);
         return "player";
