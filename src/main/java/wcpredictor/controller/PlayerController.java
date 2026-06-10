@@ -30,9 +30,11 @@ public class PlayerController {
 
         boolean isSelf = viewer != null && viewer.getId().equals(id);
         boolean isAdmin = viewer != null && viewer.isAdmin();
-        log.info("Player page: viewer={}, target={}, isSelf={}, isAdmin={}",
+        log.info("Player page: viewer={} {} target={} {} isSelf={} isAdmin={}",
                 viewer != null ? viewer.getEmailAddress() : "null",
-                user.getEmailAddress(), isSelf, isAdmin);
+                viewer != null ? viewer.getId() : "null",
+                user.getEmailAddress(), user.getId(),
+                isSelf, isAdmin);
 
         model.addAttribute("player", user);
         model.addAttribute("isSelf", isSelf);
