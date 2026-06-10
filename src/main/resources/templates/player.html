@@ -46,7 +46,7 @@
                     <label class="form-label text-muted small">Last Name</label>
                     <input type="text" class="form-control" th:value="${player.lastName}" disabled>
                 </div>
-                <div th:if="${isAdmin or isSelf}" class="mb-3">
+                <div th:if="${isAdmin || isSelf}" class="mb-3">
                     <label class="form-label text-muted small">Email</label>
                     <input type="text" class="form-control" th:value="${player.emailAddress}" disabled>
                 </div>
