@@ -8,7 +8,7 @@ set -e
 TIMESTAMP=$(date +%Y%m%d_%H%M)
 BACKUP_DIR=/home/wcpredictor/backups
 DB_BACKUP="$BACKUP_DIR/wcpredictor_${TIMESTAMP}.db"
-RCLONE_REMOTE="gdrive:wc-predictor-backups"
+RCLONE_REMOTE="gdrive:backups/wc-predictor"
 
 mkdir -p "$BACKUP_DIR"
 
