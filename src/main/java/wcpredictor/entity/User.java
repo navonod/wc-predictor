@@ -34,6 +34,6 @@ public class User {
     @ManyToMany(mappedBy = "users")
     private List<Pool> pools = new ArrayList<>();
 
-    @Column(columnDefinition = "timestamp default CURRENT_TIMESTAMP")
+    @Column(columnDefinition = "timestamp")
     private Instant createdAt;
 }
