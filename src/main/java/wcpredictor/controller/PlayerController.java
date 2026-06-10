@@ -39,4 +39,27 @@ public class PlayerController {
         model.addAttribute("isAdmin", isAdmin);
         return "player";
     }
+
+    @PostMapping("/player/{id}/edit")
+    public String editPlayer(@PathVariable UUID id,
+                              @RequestParam String nickname,
+                              @RequestParam String firstName,
+                              @RequestParam String lastName) {
+        var playerOpt = userService.findById(id);
+        if (playerOpt.isEmpty()) return "redirect:/leaderboard";
+        var player = playerOpt.get();
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var viewer = auth != null ? userService.findByEmailAddress(auth.getName()).orElse(null) : null;
+        boolean isSelf = viewer != null && viewer.getId().equals(id);
+        boolean isAdmin = viewer != null && viewer.isAdmin();
+
+        if (!isSelf && !isAdmin) return "redirect:/leaderboard";
+
+        player.setNickname(nickname);
+        player.setFirstName(firstName);
+        player.setLastName(lastName);
+        userService.save(player);
+        return "redirect:/player/" + id;
+    }
 }
