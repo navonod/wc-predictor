@@ -39,7 +39,7 @@
             <label class="form-label mb-0"><strong>Group:</strong></label>
             <select class="form-select form-select-sm" style="width:auto" onchange="location = '/predict/user/' + document.getElementById('userId').value + '/group/' + this.value + '?round=' + document.getElementById('roundInput').value">
                 <option th:each="g : ${groups}" th:value="${g}" th:text="${g}"
-                        th:selected="${g.equals(group)}"></option>
+                        th:selected="${#strings.equals(g, group)}"></option>
             </select>
         </div>
 
