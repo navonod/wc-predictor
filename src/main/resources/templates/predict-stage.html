@@ -34,7 +34,16 @@
             <a th:href="@{/player/{id}(id=${target.id})}" class="text-decoration-none"><h3 class="mb-0" th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></h3></a>
         </div>
 
-        <h4 class="mb-3" th:text="${round.description}"></h4>
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <label class="form-label mb-0"><strong>Round:</strong></label>
+            <select class="form-select form-select-sm" style="width:auto"
+                    onchange="location = '/predict/user/' + document.getElementById('userId').value + '/stage/' + this.value">
+                <option value="GROUP_MD1" th:selected="${round.name() == 'GROUP_MD1'}">Matchday 1</option>
+                <option value="GROUP_MD2" th:selected="${round.name() == 'GROUP_MD2'}">Matchday 2</option>
+                <option value="GROUP_MD3" th:selected="${round.name() == 'GROUP_MD3'}">Matchday 3</option>
+            </select>
+        </div>
+        <input type="hidden" id="userId" th:value="${target.id}">
 
         <div th:if="${!isSelf && !allLocked}" class="alert alert-info text-center py-4">
             <i class="bi bi-lock-fill display-4"></i>
