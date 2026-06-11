@@ -100,8 +100,8 @@ body::before {
     background: #0d6efd !important;
 }
 
-.score-input { width: 72px !important; text-align: center; font-size: 1.1rem; font-weight: 700; }
-.score-input-sm { width: 52px !important; text-align: center; font-weight: 700; }
+.score-input { width: 38px !important; text-align: center; font-size: 1.1rem; font-weight: 700; }
+.score-input-sm { width: 30px !important; text-align: center; font-weight: 700; }
 .match-card .team-name { min-width: 120px; }
 .save-btn-sm { width: 28px; height: 24px; }
 
