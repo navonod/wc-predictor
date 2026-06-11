@@ -31,15 +31,15 @@
             <a th:href="@{/player/{id}(id=${target.id})}" class="text-decoration-none"><h3 class="mb-0" th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></h3></a>
         </div>
 
-        <div class="d-flex align-items-end mb-4">
-            <div class="d-flex align-items-center gap-2">
+        <div class="nav nav-tabs mb-4">
+            <div class="d-flex align-items-center gap-2 me-3">
                 <label class="form-label mb-0"><strong>Group:</strong></label>
                 <select class="form-select form-select-sm" style="width:auto" onchange="location = '/predict/user/' + document.getElementById('userId').value + '/group/' + this.value + '?round=' + document.getElementById('roundInput').value">
                     <option th:each="g : ${groups}" th:value="${g}" th:text="${g}"
                             th:selected="${#strings.equals(g, group)}"></option>
                 </select>
             </div>
-            <ul class="nav nav-tabs flex-grow-1 justify-content-end">
+            <ul class="nav nav-tabs border-0 ms-auto mb-0 py-0">
                 <li class="nav-item" th:each="r : ${rounds}">
                     <a class="nav-link" th:classappend="${selectedRound == r} ? 'active'"
                        th:href="@{/predict/user/{userId}/group/{group}(userId=${target.id}, group=${group}, round=${r})}">
