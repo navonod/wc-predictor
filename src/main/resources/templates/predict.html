@@ -36,10 +36,7 @@
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="mb-0"><i class="bi bi-pencil-square"></i>
-                <span th:if="${isSelf}">Your Predictions</span>
-                <span th:unless="${isSelf}"><span th:text="${target.nickname}"></span>'s Predictions</span>
-            </h2>
+            <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Predictions: <span th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></span></h2>
             <form th:action="@{/predict/user/{id}(id=${selectedUserId})}" method="get" class="d-flex gap-2" th:if="${allUsers != null}">
                 <select class="form-select form-select-sm" style="width:auto" onchange="if(this.value) location='/predict/user/'+this.value">
                     <option value="" disabled="disabled" selected="selected">Select a player...</option>
