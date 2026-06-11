@@ -59,7 +59,7 @@ document.querySelectorAll('.save-btn, .save-btn-sm').forEach(btn => {
             if (msg) msg.innerHTML = '<small class="text-danger">Failed to save</small>';
             btn.disabled = false;
         }
-        btn.innerHTML = '<i class="bi bi-check' + (isCompact ? '' : '-lg') + '"></i>' + (isCompact ? '' : ' Save');
+        btn.innerHTML = '<i class="bi bi-check' + (isCompact ? '' : '-lg') + '"></i> Save';
         checkDirty();
     });
 });
