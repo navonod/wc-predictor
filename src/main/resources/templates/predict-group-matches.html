@@ -31,8 +31,8 @@
 
     <div class="container">
         <div class="d-flex align-items-center gap-2 mb-3">
-            <a th:href="@{/player/{id}(id=${target.id})}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
-            <h3 class="mb-0" th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></h3>
+            <a href="/predict" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+            <a th:href="@{/player/{id}(id=${target.id})}" class="text-decoration-none"><h3 class="mb-0" th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></h3></a>
         </div>
 
         <div class="d-flex align-items-center gap-3 mb-4">
