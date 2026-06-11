@@ -126,20 +126,41 @@
         </div>
 
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="md1-panel">
-                <th:block th:with="matches=${matches1}, locked=${locked1}, allLocked=${allLocked1}">
-                    <div th:replace="~{fragments/predict-stage-fragment :: stage-matches(matches=matches, scores=${mdScores}, matchLocked=locked, isSelf=${true}, allLocked=allLocked)}"></div>
-                </th:block>
+            <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}, roundAllLocked=${allLocked1}">
+                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
+                    <i class="bi bi-lock-fill display-4"></i>
+                    <h5>Predictions Locked</h5>
+                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
+                </div>
+                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    </div>
+                </div>
             </div>
-            <div class="tab-pane fade" id="md2-panel">
-                <th:block th:with="matches=${matches2}, locked=${locked2}, allLocked=${allLocked2}">
-                    <div th:replace="~{fragments/predict-stage-fragment :: stage-matches(matches=matches, scores=${mdScores}, matchLocked=locked, isSelf=${true}, allLocked=allLocked)}"></div>
-                </th:block>
+            <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}, roundAllLocked=${allLocked2}">
+                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
+                    <i class="bi bi-lock-fill display-4"></i>
+                    <h5>Predictions Locked</h5>
+                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
+                </div>
+                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    </div>
+                </div>
             </div>
-            <div class="tab-pane fade" id="md3-panel">
-                <th:block th:with="matches=${matches3}, locked=${locked3}, allLocked=${allLocked3}">
-                    <div th:replace="~{fragments/predict-stage-fragment :: stage-matches(matches=matches, scores=${mdScores}, matchLocked=locked, isSelf=${true}, allLocked=allLocked)}"></div>
-                </th:block>
+            <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}, roundAllLocked=${allLocked3}">
+                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
+                    <i class="bi bi-lock-fill display-4"></i>
+                    <h5>Predictions Locked</h5>
+                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
+                </div>
+                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
