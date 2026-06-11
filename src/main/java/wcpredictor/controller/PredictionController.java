@@ -19,15 +19,25 @@ public class PredictionController {
     private final TeamService teamService;
     private final UserService userService;
     private final TournamentService tournamentService;
+    private final TimeService timeService;
 
     public PredictionController(MatchService matchService, PredictionService predictionService,
                                  TeamService teamService, UserService userService,
-                                 TournamentService tournamentService) {
+                                 TournamentService tournamentService, TimeService timeService) {
         this.matchService = matchService;
         this.predictionService = predictionService;
         this.teamService = teamService;
         this.userService = userService;
         this.tournamentService = tournamentService;
+        this.timeService = timeService;
+    }
+
+    private boolean tournamentStarted() {
+        var now = timeService.now();
+        for (Match m : matchService.getAllMatches()) {
+            if (m.getMatchDate() != null && now.isAfter(m.getMatchDate())) return true;
+        }
+        return false;
     }
 
     private User getCurrentUser(Principal principal) {
@@ -42,6 +52,7 @@ public class PredictionController {
         model.addAttribute("hasTournamentPrediction", predictionService.getUserTournamentPrediction(user.getId()).isPresent());
         model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(user.getId()));
         model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId(), tournamentId));
+        model.addAttribute("tournamentStarted", tournamentStarted());
         return "predict";
     }
 
@@ -51,6 +62,7 @@ public class PredictionController {
         var existing = predictionService.getUserTournamentPrediction(user.getId());
         model.addAttribute("prediction", existing.orElse(new TournamentPrediction()));
         model.addAttribute("teams", teamService.getAllTeams());
+        model.addAttribute("tournamentStarted", tournamentStarted());
         return "predict-tournament";
     }
 
@@ -94,6 +106,7 @@ public class PredictionController {
         var predictions = predictionService.getUserGroupAdvancementPredictions(user.getId());
         model.addAttribute("predictedTeamIds", predictions.stream()
                 .map(p -> p.getTeam().getId().toString()).collect(Collectors.toSet()));
+        model.addAttribute("tournamentStarted", tournamentStarted());
 
         return "predict-group";
     }
@@ -119,25 +132,39 @@ public class PredictionController {
                                          Model model, Principal principal) {
         User user = getCurrentUser(principal);
         var matches = matchService.getMatchesByGroup(String.valueOf(group));
+        var now = timeService.now();
+        Map<UUID, Boolean> matchLocked = new HashMap<>();
+        for (Match m : matches) matchLocked.put(m.getId(), m.isLocked(now));
+
         model.addAttribute("group", group);
         model.addAttribute("matches", matches);
         model.addAttribute("selectedRound", round);
         model.addAttribute("rounds", List.of("GROUP_MD1", "GROUP_MD2", "GROUP_MD3"));
         model.addAttribute("scores", predictionService.getUserMatchPredictionScores(user.getId()));
+        model.addAttribute("matchLocked", matchLocked);
         return "predict-group-matches";
     }
 
     @PostMapping("/predict/group/{group}/save")
     public String saveGroupMatchPrediction(@PathVariable char group,
-                                            @RequestParam UUID matchId,
-                                            @RequestParam int team1Score,
-                                            @RequestParam int team2Score,
+                                            @RequestParam Map<String, String> params,
                                             @RequestParam String redirect,
                                             Principal principal,
                                             RedirectAttributes ra) {
         User user = getCurrentUser(principal);
         try {
-            predictionService.saveMatchPrediction(user, matchId, team1Score, team2Score);
+            for (var entry : params.entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("score_") && key.endsWith("_1")) {
+                    String matchIdStr = key.substring(6, key.length() - 2);
+                    String s2 = params.get("score_" + matchIdStr + "_2");
+                    if (s2 != null && !entry.getValue().isBlank() && !s2.isBlank()) {
+                        UUID matchId = UUID.fromString(matchIdStr);
+                        predictionService.saveMatchPrediction(user, matchId,
+                                Integer.parseInt(entry.getValue()), Integer.parseInt(s2));
+                    }
+                }
+            }
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());
             return "redirect:" + redirect;

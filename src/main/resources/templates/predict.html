@@ -54,7 +54,8 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Predict awards, finalists, and champion before the tournament starts.</p>
-                        <a href="/predict/tournament" class="btn btn-outline-primary"
+                        <span th:if="${tournamentStarted}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
+                        <a th:unless="${tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary"
                            th:text="${hasTournamentPrediction} ? 'Edit Tournament Predictions' : 'Make Tournament Predictions'"></a>
                     </div>
                 </div>
@@ -67,8 +68,9 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Pick the 32 teams that will advance from the group stage.</p>
-                        <div class="alert alert-warning small py-2">Groups were recently updated to the official FIFA draw. Please review your selections.</div>
-                        <a href="/predict/group" class="btn btn-outline-primary"
+                        <div th:unless="${tournamentStarted}" class="alert alert-warning small py-2">Groups were recently updated to the official FIFA draw. Please review your selections.</div>
+                        <span th:if="${tournamentStarted}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
+                        <a th:unless="${tournamentStarted}" href="/predict/group" class="btn btn-outline-primary"
                            th:text="${hasGroupPredictions} ? 'Edit Group Predictions' : 'Make Group Predictions'"></a>
                     </div>
                 </div>
