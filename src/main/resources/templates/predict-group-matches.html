@@ -50,54 +50,44 @@
             </li>
         </ul>
 
-        <div class="row justify-content-center mb-3">
-            <div class="col-lg-10 text-end">
-                <button type="submit" form="batch-form" id="save-btn" class="btn btn-primary" disabled>
-                    <i class="bi bi-check-lg"></i> Save
-                </button>
-            </div>
-        </div>
+        <input type="hidden" id="group_letter" th:value="${group}">
 
-        <form method="post" id="batch-form"
-              th:action="@{/predict/group/{group}/save(group=${group})}">
-            <input type="hidden" name="redirect"
-                   th:value="@{/predict/group/{group}(group=${group}, round=${selectedRound})}">
-
-            <div th:each="match : ${matches}" th:if="${match.round.name() == selectedRound}">
-                <div class="row justify-content-center mb-3">
-                    <div class="col-lg-10">
-                        <div class="card shadow-sm match-card">
-                            <div class="card-header text-muted small py-1">
-                                Match <span th:text="${match.matchNumber}"></span> &middot;
-                                <span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
-                                <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
-                            </div>
-                            <div class="card-body py-3">
-                                <div th:if="${matchLocked[match.id]}" class="text-center py-2">
-                                    <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap mb-2">
-                                        <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                        <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
-                                        <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
-                                        <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
-                                        <span class="text-muted">&ndash;</span>
-                                        <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
-                                        <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
-                                        <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                        <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
-                                    </div>
-                                    <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Predictions closed</span>
+        <div th:each="match : ${matches}" th:if="${match.round.name() == selectedRound}">
+            <div class="row justify-content-center mb-3">
+                <div class="col-lg-10">
+                    <div class="card shadow-sm match-card">
+                        <div class="card-header text-muted small py-1">
+                            Match <span th:text="${match.matchNumber}"></span> &middot;
+                            <span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
+                            <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
+                        </div>
+                        <div class="card-body py-3">
+                            <div th:if="${matchLocked[match.id]}" class="text-center py-2">
+                                <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap mb-2">
+                                    <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
+                                    <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
+                                    <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
+                                    <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
+                                    <span class="text-muted">&ndash;</span>
+                                    <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
+                                    <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
+                                    <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
+                                    <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
                                 </div>
-                                <div th:unless="${matchLocked[match.id]}">
+                                <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Predictions closed</span>
+                            </div>
+                            <div th:unless="${matchLocked[match.id]}">
+                                <div>
                                     <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
                                         <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
                                         <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
                                         <input type="number" class="form-control score-input"
-                                               th:name="'score_'+${match.id}+'_1'" min="0" max="10"
+                                               th:id="'s1_'+${match.id}" min="0" max="10"
                                                th:value="${scores[match.id] != null ? scores[match.id][0] : ''}"
                                                th:attr="data-initial=${scores[match.id] != null ? scores[match.id][0] : ''}">
                                         <span class="text-muted fs-5 mx-1">&ndash;</span>
                                         <input type="number" class="form-control score-input"
-                                               th:name="'score_'+${match.id}+'_2'" min="0" max="10"
+                                               th:id="'s2_'+${match.id}" min="0" max="10"
                                                th:value="${scores[match.id] != null ? scores[match.id][1] : ''}"
                                                th:attr="data-initial=${scores[match.id] != null ? scores[match.id][1] : ''}">
                                         <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
@@ -106,14 +96,20 @@
                                                 title="Randomize this match">
                                             <i class="bi bi-dice-6"></i>
                                         </button>
+                                        <button type="button" class="btn btn-primary btn-sm ms-1 save-btn" disabled
+                                                title="Modify scores to enable save"
+                                                th:attr="data-match-id=${match.id}">
+                                            <i class="bi bi-check-lg"></i> Save
+                                        </button>
                                     </div>
                                 </div>
+                                <div class="text-end mt-1" th:id="'msg_'+${match.id}"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </form>
+        </div>
 
         <div th:if="${matches == null or matches.isEmpty()}" class="text-center text-muted py-5">
             <p>No matches found for this group.</p>
@@ -137,33 +133,60 @@
             return 10;
         }
 
-        const form = document.getElementById('batch-form');
-        const saveBtn = document.getElementById('save-btn');
-        const inputs = form.querySelectorAll('.score-input');
+        document.querySelectorAll('.save-btn').forEach(btn => {
+            const matchId = btn.getAttribute('data-match-id');
+            const s1 = document.getElementById('s1_' + matchId);
+            const s2 = document.getElementById('s2_' + matchId);
+            const msg = document.getElementById('msg_' + matchId);
 
-        function checkDirty() {
-            let dirty = false;
-            inputs.forEach(inp => {
-                if (inp.value !== inp.getAttribute('data-initial')) dirty = true;
-            });
-            saveBtn.disabled = !dirty;
-        }
+            function checkDirty() {
+                const d1 = s1.value !== s1.getAttribute('data-initial');
+                const d2 = s2.value !== s2.getAttribute('data-initial');
+                btn.disabled = !(d1 || d2);
+            }
+            s1.addEventListener('input', checkDirty);
+            s2.addEventListener('input', checkDirty);
 
-        inputs.forEach(inp => inp.addEventListener('input', checkDirty));
+            const dice = btn.previousElementSibling;
+            if (dice && dice.classList.contains('dice-btn')) {
+                dice.addEventListener('click', () => {
+                    s1.value = randomScore();
+                    s2.value = randomScore();
+                    checkDirty();
+                });
+            }
 
-        document.querySelectorAll('.dice-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const card = this.closest('.card-body');
-                const cardInputs = card.querySelectorAll('.score-input');
-                cardInputs[0].value = randomScore();
-                cardInputs[1].value = randomScore();
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                msg.innerHTML = '';
+                const group = document.getElementById('group_letter').value;
+                try {
+                    const formData = new FormData();
+                    formData.append('matchId', matchId);
+                    formData.append('team1Score', s1.value);
+                    formData.append('team2Score', s2.value);
+                    const resp = await fetch('/api/predict/group/' + group + '/save', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await resp.json();
+                    if (result.success) {
+                        s1.setAttribute('data-initial', s1.value);
+                        s2.setAttribute('data-initial', s2.value);
+                        msg.innerHTML = '<small class="text-success"><i class="bi bi-check"></i> Saved</small>';
+                        setTimeout(() => { msg.innerHTML = ''; }, 2000);
+                    } else {
+                        msg.innerHTML = '<small class="text-danger">' + result.error + '</small>';
+                        btn.disabled = false;
+                    }
+                } catch (e) {
+                    msg.innerHTML = '<small class="text-danger">Failed to save</small>';
+                    btn.disabled = false;
+                }
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Save';
                 checkDirty();
             });
-        });
-
-        form.addEventListener('submit', function() {
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
         });
     </script>
 </body>

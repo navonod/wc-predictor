@@ -175,4 +175,20 @@ public class PredictionController {
         }
         return "redirect:" + redirect;
     }
+
+    @PostMapping("/api/predict/group/{group}/save")
+    @ResponseBody
+    public Map<String, Object> ajaxSaveMatchPrediction(@PathVariable String group,
+                                                        @RequestParam UUID matchId,
+                                                        @RequestParam int team1Score,
+                                                        @RequestParam int team2Score,
+                                                        Principal principal) {
+        User user = getCurrentUser(principal);
+        try {
+            predictionService.saveMatchPrediction(user, matchId, team1Score, team2Score);
+            return Map.of("success", true);
+        } catch (IllegalStateException e) {
+            return Map.of("error", e.getMessage());
+        }
+    }
 }
