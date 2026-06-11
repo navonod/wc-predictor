@@ -50,13 +50,15 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="bi bi-bar-chart-steps"></i> Tournament Predictions</h5>
+                        <h5 class="mb-0"><i class="bi bi-bar-chart-steps"></i> Tournament Predictions
+                            <span th:if="${tournamentStarted}" class="badge bg-warning text-dark ms-2"><i class="bi bi-lock-fill"></i> Closed</span>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Predict awards, finalists, and champion before the tournament starts.</p>
-                        <span th:if="${tournamentStarted}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
-                        <a th:unless="${tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary"
+                        <a th:if="${!tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary"
                            th:text="${hasTournamentPrediction} ? 'Edit Tournament Predictions' : 'Make Tournament Predictions'"></a>
+                        <a th:if="${tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary">View Predictions</a>
                     </div>
                 </div>
             </div>
@@ -64,14 +66,16 @@
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Group Advancement</h5>
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Group Advancement
+                            <span th:if="${tournamentStarted}" class="badge bg-warning text-dark ms-2"><i class="bi bi-lock-fill"></i> Closed</span>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Pick the 32 teams that will advance from the group stage.</p>
                         <div th:unless="${tournamentStarted}" class="alert alert-warning small py-2">Groups were recently updated to the official FIFA draw. Please review your selections.</div>
-                        <span th:if="${tournamentStarted}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
-                        <a th:unless="${tournamentStarted}" href="/predict/group" class="btn btn-outline-primary"
+                        <a th:if="${!tournamentStarted}" href="/predict/group" class="btn btn-outline-primary"
                            th:text="${hasGroupPredictions} ? 'Edit Group Predictions' : 'Make Group Predictions'"></a>
+                        <a th:if="${tournamentStarted}" href="/predict/group" class="btn btn-outline-primary">View Predictions</a>
                     </div>
                 </div>
             </div>
