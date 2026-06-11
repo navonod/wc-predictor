@@ -46,14 +46,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div th:if="${!isSelf && !allLocked}" class="alert alert-info text-center py-4">
-            <i class="bi bi-lock-fill display-4"></i>
-            <h5>Predictions Locked</h5>
-            <p class="mb-0">This player's predictions will be visible once all matches in this round are locked in.</p>
-        </div>
-
-        <div th:if="${isSelf || allLocked}">
-            <ul class="nav nav-tabs mb-4">
+        <ul class="nav nav-tabs mb-4">
                 <li class="nav-item" th:each="r : ${rounds}">
                     <a class="nav-link" th:classappend="${selectedRound == r} ? 'active'"
                        th:href="@{/predict/user/{userId}/group/{group}(userId=${target.id}, group=${group}, round=${r})}">
@@ -71,7 +64,6 @@
                     <div class="col-lg-10">
                         <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf}, compact=${false}, actual=${actual[match.id]}, points=${points[match.id]})}"></th:block>
                     </div>
-                </div>
             </div>
         </div>
 
