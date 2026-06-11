@@ -37,8 +37,7 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0"><i class="bi bi-pencil-square"></i> Predictions: <span th:text="${target.nickname != null && !target.nickname.isBlank() ? target.nickname : (target.firstName != null ? target.firstName + ' ' + target.lastName : target.emailAddress)}"></span></h2>
-            <form th:action="@{/predict/user/{id}(id=${selectedUserId})}" method="get" class="d-flex gap-2" th:if="${allUsers != null}">
-                <select class="form-select form-select-sm" style="width:auto" onchange="if(this.value) location='/predict/user/'+this.value">
+            <select class="form-select form-select-sm" style="width:auto" onchange="if(this.value) location='/predict/user/'+this.value">
                     <option value="" disabled="disabled" selected="selected">Select a player...</option>
                     <option th:each="u : ${allUsers}" th:value="${u.id}"
                             th:text="${u.nickname}"
@@ -65,9 +64,9 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Predict awards, finalists, and champion before the tournament starts.</p>
-                        <a th:if="${!tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary"
+                        <a th:if="${!tournamentStarted}" th:href="@{/predict/user/{userId}/tournament(userId=${target.id})}" class="btn btn-outline-primary"
                            th:text="${hasTournamentPrediction} ? 'Edit Tournament Predictions' : 'Make Tournament Predictions'"></a>
-                        <a th:if="${tournamentStarted}" href="/predict/tournament" class="btn btn-outline-primary">View Predictions</a>
+                        <a th:if="${tournamentStarted}" th:href="@{/predict/user/{userId}/tournament(userId=${target.id})}" class="btn btn-outline-primary">View Predictions</a>
                     </div>
                 </div>
             </div>
@@ -82,9 +81,9 @@
                     <div class="card-body">
                         <p class="text-muted small">Pick the 32 teams that will advance from the group stage.</p>
                         <div th:unless="${tournamentStarted}" class="alert alert-warning small py-2">Groups were recently updated to the official FIFA draw. Please review your selections.</div>
-                        <a th:if="${!tournamentStarted}" href="/predict/group" class="btn btn-outline-primary"
+                        <a th:if="${!tournamentStarted}" th:href="@{/predict/user/{userId}/group(userId=${target.id})}" class="btn btn-outline-primary"
                            th:text="${hasGroupPredictions} ? 'Edit Group Predictions' : 'Make Group Predictions'"></a>
-                        <a th:if="${tournamentStarted}" href="/predict/group" class="btn btn-outline-primary">View Predictions</a>
+                        <a th:if="${tournamentStarted}" th:href="@{/predict/user/{userId}/group(userId=${target.id})}" class="btn btn-outline-primary">View Predictions</a>
                     </div>
                 </div>
             </div>
