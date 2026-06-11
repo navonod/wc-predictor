@@ -27,7 +27,7 @@
 
     <div class="container">
         <div class="d-flex align-items-center gap-2 mb-4">
-            <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i></a>
+            <a href="#" onclick="history.back(); return false;" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
             <h2 class="mb-0">
                 <span th:text="${player.nickname != null && !player.nickname.isBlank() ? player.nickname : (player.firstName != null ? player.firstName + ' ' + player.lastName : 'Player')}"></span>
             </h2>
