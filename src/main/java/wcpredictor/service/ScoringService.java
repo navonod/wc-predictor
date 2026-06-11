@@ -70,7 +70,7 @@ public class ScoringService {
 
     public Map<String, Double> calculateTournamentAwardPoints(UUID userId) {
         Map<String, Double> points = new LinkedHashMap<>();
-        if (!tournamentHasStarted()) return points;
+        if (!finalMatchPlayed()) return points;
 
         var tpOpt = tournamentPredictionRepo.findByUserId(userId);
         if (tpOpt.isEmpty()) return points;
@@ -89,13 +89,19 @@ public class ScoringService {
         return points;
     }
 
+    private boolean finalMatchPlayed() {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getMatchNumber() == 104)
+                .anyMatch(m -> m.getTeam1Score() != null);
+    }
+
     public double getTotalAwardPoints(UUID userId) {
         return calculateTournamentAwardPoints(userId).values().stream()
                 .mapToDouble(Double::doubleValue).sum();
     }
 
     public double calculateGroupAdvancementPoints(UUID userId) {
-        if (!tournamentHasStarted()) return 0;
+        if (!allGroupMatchesCompleted()) return 0;
 
         var predictions = groupAdvancementPredictionRepo.findByUserId(userId);
         double points = 0;
@@ -104,6 +110,12 @@ public class ScoringService {
             points += perCorrect;
         }
         return points;
+    }
+
+    private boolean allGroupMatchesCompleted() {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getGroupLetter() != null && m.getGroupLetter().length() == 1)
+                .allMatch(m -> m.getTeam1Score() != null);
     }
 
     public double getTotalPoints(UUID userId) {
