@@ -115,7 +115,7 @@
             </fieldset>
 
             <div class="text-center mt-4 mb-5">
-                <a href="/predict" class="btn btn-outline-secondary">Cancel</a>
+                <a th:href="@{/predict/user/{userId}(userId=${target.id})}" class="btn btn-outline-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary" th:disabled="${tournamentStarted}">Save Predictions</button>
             </div>
         </form>
