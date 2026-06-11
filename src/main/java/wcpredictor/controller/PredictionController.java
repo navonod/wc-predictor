@@ -53,6 +53,25 @@ public class PredictionController {
         model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(user.getId()));
         model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId(), tournamentId));
         model.addAttribute("tournamentStarted", tournamentStarted());
+
+        // Stage view fragment data
+        RoundType stageRound = RoundType.GROUP_MD1;
+        var openRounds = matchService.getOpenRounds();
+        if (!openRounds.isEmpty()) stageRound = openRounds.get(0);
+        var stageMatches = matchService.getMatchesByRound(stageRound);
+        var now = timeService.now();
+        Map<UUID, Boolean> stageLocked = new HashMap<>();
+        boolean stageAllLocked = true;
+        for (Match m : stageMatches) {
+            boolean lock = m.isLocked(now);
+            stageLocked.put(m.getId(), lock);
+            if (!lock) stageAllLocked = false;
+        }
+        model.addAttribute("stageRound", stageRound);
+        model.addAttribute("stageMatches", stageMatches);
+        model.addAttribute("stageScores", predictionService.getUserMatchPredictionScores(user.getId()));
+        model.addAttribute("stageLocked", stageLocked);
+        model.addAttribute("stageAllLocked", stageAllLocked);
         return "predict";
     }
 
@@ -211,7 +230,6 @@ public class PredictionController {
         } catch (IllegalStateException e) {
             return Map.of("error", e.getMessage());
         }
-        }
     }
 
     @GetMapping("/predict/user/{userId}/stage/{roundType}")
@@ -245,3 +263,4 @@ public class PredictionController {
         model.addAttribute("allLocked", allLocked);
         return "predict-stage";
     }
+}
