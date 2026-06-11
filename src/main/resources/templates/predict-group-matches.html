@@ -80,64 +80,7 @@
                                 <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
                             </div>
                             <div class="card-body py-3">
-                                <div th:if="${matchLocked[match.id]}" class="text-center py-2">
-                                    <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap mb-2">
-                                        <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                        <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
-                                        <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
-                                        <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
-                                        <span class="text-muted">&ndash;</span>
-                                        <span class="fw-bold" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
-                                        <span class="text-muted" th:if="${scores[match.id] == null}">-</span>
-                                        <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                        <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
-                                    </div>
-                                    <span class="badge bg-danger"><i class="bi bi-lock-fill"></i> Predictions closed</span>
-                                </div>
-                                <div th:unless="${matchLocked[match.id]}">
-                                    <div th:if="${isSelf}">
-                                        <div>
-                                            <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
-                                                <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                                <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
-                                                <input type="number" class="form-control score-input"
-                                                       th:id="'s1_'+${match.id}" min="0" max="10"
-                                                       th:value="${scores[match.id] != null ? scores[match.id][0] : ''}"
-                                                       th:attr="data-initial=${scores[match.id] != null ? scores[match.id][0] : ''}">
-                                                <span class="text-muted fs-5 mx-1">&ndash;</span>
-                                                <input type="number" class="form-control score-input"
-                                                       th:id="'s2_'+${match.id}" min="0" max="10"
-                                                       th:value="${scores[match.id] != null ? scores[match.id][1] : ''}"
-                                                       th:attr="data-initial=${scores[match.id] != null ? scores[match.id][1] : ''}">
-                                                <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                                <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
-                                                <button type="button" class="btn btn-sm border-0 fs-5 px-2 dice-btn"
-                                                        title="Randomize this match">
-                                                    <i class="bi bi-dice-6"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-primary btn-sm ms-1 save-btn" disabled
-                                                        title="Modify scores to enable save"
-                                                        th:attr="data-match-id=${match.id}">
-                                                    <i class="bi bi-check-lg"></i> Save
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="text-end mt-1" th:id="'msg_'+${match.id}"></div>
-                                    </div>
-                                    <div th:unless="${isSelf}" class="text-center py-2">
-                                        <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
-                                            <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1.name}"></span>
-                                            <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1.countryCode}"></span>
-                                            <span class="fw-bold fs-5" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
-                                            <span class="text-muted fs-5" th:if="${scores[match.id] == null}">-</span>
-                                            <span class="text-muted">&ndash;</span>
-                                            <span class="fw-bold fs-5" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
-                                            <span class="text-muted fs-5" th:if="${scores[match.id] == null}">-</span>
-                                            <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2.name}"></span>
-                                            <span class="team-name fw-bold d-md-none" th:text="${match.team2.countryCode}"></span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf})}"></th:block>
                             </div>
                         </div>
                     </div>

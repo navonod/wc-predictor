@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+    <th:block th:fragment="match-card(match, score, locked, isSelf, compact)">
+        <div th:if="${locked}">
+            <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap"
+                 th:classappend="${compact != null && compact} ? 'small'">
+                <span class="team-name text-end fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team1?.name}"></span>
+                <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
+                <span th:if="${!compact}" class="d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                <span class="fw-bold mx-1" th:if="${score != null}" th:text="${score[0]}"></span>
+                <span class="text-muted mx-1" th:if="${score == null}">-</span>
+                <span class="text-muted">&ndash;</span>
+                <span class="fw-bold mx-1" th:if="${score != null}" th:text="${score[1]}"></span>
+                <span class="text-muted mx-1" th:if="${score == null}">-</span>
+                <span class="team-name fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team2?.name}"></span>
+                <span th:if="${!compact}" class="d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
+            </div>
+            <span class="badge bg-danger mt-1"><i class="bi bi-lock-fill"></i> Predictions closed</span>
+        </div>
+        <div th:unless="${locked}">
+            <!-- Editable for self -->
+            <div th:if="${isSelf}">
+                <div th:if="${compact != null && compact}">
+                    <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap small">
+                        <span class="d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                        <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
+                        <input type="number" class="form-control form-control-sm score-input-sm"
+                               th:id="'ss1_'+${match.id}" min="0" max="10"
+                               th:value="${score != null ? score[0] : ''}"
+                               th:attr="data-initial=${score != null ? score[0] : ''}">
+                        <span class="text-muted">&ndash;</span>
+                        <input type="number" class="form-control form-control-sm score-input-sm"
+                               th:id="'ss2_'+${match.id}" min="0" max="10"
+                               th:value="${score != null ? score[1] : ''}"
+                               th:attr="data-initial=${score != null ? score[1] : ''}">
+                        <span class="d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                        <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
+                        <button type="button" class="btn btn-sm border-0 px-1 dice-btn-sm" title="Randomize"><i class="bi bi-dice-6"></i></button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <div th:id="'smsg_'+${match.id}" class="small"></div>
+                        <button type="button" class="btn btn-primary btn-sm py-0 save-btn-sm" disabled
+                                th:attr="data-match-id=${match.id}"><i class="bi bi-check"></i></button>
+                    </div>
+                </div>
+                <div th:unless="${compact != null && compact}">
+                    <div class="d-flex align-items-center justify-content-center gap-2 flex-nowrap">
+                        <span class="team-name text-end fw-bold d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                        <span class="team-name text-end fw-bold d-md-none" th:text="${match.team1?.countryCode}"></span>
+                        <input type="number" class="form-control score-input"
+                               th:id="'s1_'+${match.id}" min="0" max="10"
+                               th:value="${score != null ? score[0] : ''}"
+                               th:attr="data-initial=${score != null ? score[0] : ''}">
+                        <span class="text-muted fs-5 mx-1">&ndash;</span>
+                        <input type="number" class="form-control score-input"
+                               th:id="'s2_'+${match.id}" min="0" max="10"
+                               th:value="${score != null ? score[1] : ''}"
+                               th:attr="data-initial=${score != null ? score[1] : ''}">
+                        <span class="team-name fw-bold d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                        <span class="team-name fw-bold d-md-none" th:text="${match.team2?.countryCode}"></span>
+                        <button type="button" class="btn btn-sm border-0 fs-5 px-2 dice-btn"
+                                title="Randomize this match"><i class="bi bi-dice-6"></i></button>
+                        <button type="button" class="btn btn-primary btn-sm ms-1 save-btn" disabled
+                                th:attr="data-match-id=${match.id}"><i class="bi bi-check-lg"></i> Save</button>
+                    </div>
+                    <div class="text-end mt-1" th:id="'msg_'+${match.id}"></div>
+                </div>
+            </div>
+            <!-- Read-only for others -->
+            <div th:unless="${isSelf}" class="text-center">
+                <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap"
+                     th:classappend="${compact != null && compact} ? 'small'">
+                    <span class="team-name text-end fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team1?.name}"></span>
+                    <span th:if="${!compact}" class="d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                    <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
+                    <span class="fw-bold fs-5" th:if="${!compact && score != null}" th:text="${score[0]}"></span>
+                    <span class="fw-bold mx-1" th:if="${compact && score != null}" th:text="${score[0]}"></span>
+                    <span class="text-muted fs-5" th:if="${!compact && score == null}">-</span>
+                    <span class="text-muted mx-1" th:if="${compact && score == null}">-</span>
+                    <span class="text-muted" th:if="${!compact}">&ndash;</span>
+                    <span class="text-muted" th:if="${compact}">&ndash;</span>
+                    <span class="fw-bold fs-5" th:if="${!compact && score != null}" th:text="${score[1]}"></span>
+                    <span class="fw-bold mx-1" th:if="${compact && score != null}" th:text="${score[1]}"></span>
+                    <span class="text-muted fs-5" th:if="${!compact && score == null}">-</span>
+                    <span class="text-muted mx-1" th:if="${compact && score == null}">-</span>
+                    <span class="team-name fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team2?.name}"></span>
+                    <span th:if="${!compact}" class="d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                    <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</body>
+</html>
