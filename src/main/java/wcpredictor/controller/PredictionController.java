@@ -198,10 +198,9 @@ public class PredictionController {
         return "redirect:" + redirect;
     }
 
-    @PostMapping("/api/predict/group/{group}/save")
+    @PostMapping("/api/predict/match/save")
     @ResponseBody
-    public Map<String, Object> ajaxSaveMatchPrediction(@PathVariable String group,
-                                                        @RequestParam UUID matchId,
+    public Map<String, Object> ajaxSaveMatchPrediction(@RequestParam UUID matchId,
                                                         @RequestParam int team1Score,
                                                         @RequestParam int team2Score,
                                                         Principal principal) {
@@ -214,3 +213,36 @@ public class PredictionController {
         }
     }
 }
+    }
+
+    @GetMapping("/predict/user/{userId}/stage/{roundType}")
+    public String stagePredictions(@PathVariable UUID userId, @PathVariable String roundType,
+                                    Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+
+        RoundType round;
+        try { round = RoundType.valueOf(roundType.toUpperCase()); }
+        catch (IllegalArgumentException e) { return "redirect:/predict"; }
+
+        boolean isSelf = viewer.getId().equals(userId);
+        var matches = matchService.getMatchesByRound(round);
+        var now = timeService.now();
+        Map<UUID, Boolean> matchLocked = new HashMap<>();
+        boolean allLocked = true;
+        for (Match m : matches) {
+            boolean locked = m.isLocked(now);
+            matchLocked.put(m.getId(), locked);
+            if (!locked) allLocked = false;
+        }
+
+        model.addAttribute("target", target);
+        model.addAttribute("isSelf", isSelf);
+        model.addAttribute("round", round);
+        model.addAttribute("matches", matches);
+        model.addAttribute("scores", predictionService.getUserMatchPredictionScores(target.getId()));
+        model.addAttribute("matchLocked", matchLocked);
+        model.addAttribute("allLocked", allLocked);
+        return "predict-stage";
+    }
