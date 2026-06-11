@@ -122,8 +122,9 @@
             </div>
         </div>
 
-        <div th:replace="~{fragments/predict-stage-fragment :: stage-matches}"
-             th:with="matches=${stageMatches},scores=${stageScores},matchLocked=${stageLocked},isSelf=${true},allLocked=${stageAllLocked}"></div>
+        <th:block th:with="matches=${stageMatches}, scores=${stageScores}, matchLocked=${stageLocked}, isSelf=${true}, allLocked=${stageAllLocked}">
+            <div th:replace="~{fragments/predict-stage-fragment :: stage-matches}"></div>
+        </th:block>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
