@@ -211,8 +211,7 @@ public class PredictionController {
         } catch (IllegalStateException e) {
             return Map.of("error", e.getMessage());
         }
-    }
-}
+        }
     }
 
     @GetMapping("/predict/user/{userId}/stage/{roundType}")
