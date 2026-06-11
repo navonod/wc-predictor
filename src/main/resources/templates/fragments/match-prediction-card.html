@@ -11,6 +11,7 @@
                 <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap"
                      th:classappend="${compact != null && compact} ? 'small'">
                     <span class="team-name text-end fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team1?.name}"></span>
+                    <span class="d-none d-md-inline" th:if="${compact != null && compact}" th:text="${match.team1?.name}"></span>
                     <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
                     <span class="d-none d-md-inline" th:if="${!compact}" th:text="${match.team1?.name}"></span>
                     <span class="fw-bold mx-1" th:if="${score != null}" th:text="${score[0]}"></span>
@@ -19,7 +20,7 @@
                     <span class="fw-bold mx-1" th:if="${score != null}" th:text="${score[1]}"></span>
                     <span class="text-muted mx-1" th:if="${score == null}">-</span>
                     <span class="team-name fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team2?.name}"></span>
-                    <span class="d-none d-md-inline" th:if="${!compact}" th:text="${match.team2?.name}"></span>
+                    <span class="d-none d-md-inline" th:if="${compact != null && compact}" th:text="${match.team2?.name}"></span>
                     <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
                 </div>
                 <span class="badge bg-danger mt-1"><i class="bi bi-lock-fill"></i> Predictions closed</span>
