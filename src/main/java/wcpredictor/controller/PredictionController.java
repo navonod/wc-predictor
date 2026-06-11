@@ -155,10 +155,6 @@ public class PredictionController {
                                             @RequestParam String redirect,
                                             Principal principal,
                                         RedirectAttributes ra) {
-        if (tournamentStarted()) {
-            ra.addFlashAttribute("error", "The tournament has started. Group advancement predictions are closed.");
-            return "redirect:/predict";
-        }
         User user = getCurrentUser(principal);
         try {
             for (var entry : params.entrySet()) {
