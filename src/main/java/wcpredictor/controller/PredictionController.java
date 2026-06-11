@@ -54,24 +54,25 @@ public class PredictionController {
         model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId(), tournamentId));
         model.addAttribute("tournamentStarted", tournamentStarted());
 
-        // Stage view fragment data
-        RoundType stageRound = RoundType.GROUP_MD1;
-        var openRounds = matchService.getOpenRounds();
-        if (!openRounds.isEmpty()) stageRound = openRounds.get(0);
-        var stageMatches = matchService.getMatchesByRound(stageRound);
+        // Stage view fragment data for all three matchdays
         var now = timeService.now();
-        Map<UUID, Boolean> stageLocked = new HashMap<>();
-        boolean stageAllLocked = true;
-        for (Match m : stageMatches) {
-            boolean lock = m.isLocked(now);
-            stageLocked.put(m.getId(), lock);
-            if (!lock) stageAllLocked = false;
+        var userScores = predictionService.getUserMatchPredictionScores(user.getId());
+        List<RoundType> mdRounds = List.of(RoundType.GROUP_MD1, RoundType.GROUP_MD2, RoundType.GROUP_MD3);
+        for (RoundType r : mdRounds) {
+            var matches = matchService.getMatchesByRound(r);
+            Map<UUID, Boolean> locked = new HashMap<>();
+            boolean allLocked = true;
+            for (Match m : matches) {
+                boolean lock = m.isLocked(now);
+                locked.put(m.getId(), lock);
+                if (!lock) allLocked = false;
+            }
+            String suffix = r.name().substring(r.name().length() - 1); // "1", "2", or "3"
+            model.addAttribute("matches" + suffix, matches);
+            model.addAttribute("locked" + suffix, locked);
+            model.addAttribute("allLocked" + suffix, allLocked);
         }
-        model.addAttribute("stageRound", stageRound);
-        model.addAttribute("stageMatches", stageMatches);
-        model.addAttribute("stageScores", predictionService.getUserMatchPredictionScores(user.getId()));
-        model.addAttribute("stageLocked", stageLocked);
-        model.addAttribute("stageAllLocked", stageAllLocked);
+        model.addAttribute("mdScores", userScores);
         return "predict";
     }
 
