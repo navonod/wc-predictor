@@ -110,8 +110,9 @@
             </div>
         </div>
 
-        <h4 class="mb-1"><i class="bi bi-collection"></i> Stages</h4>
-        <ul class="nav nav-tabs mb-3" role="tablist">
+        <div class="d-flex align-items-end mb-3">
+            <h4 class="mb-0"><i class="bi bi-collection"></i> Stages</h4>
+            <ul class="nav nav-tabs ms-auto" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#md1-panel" type="button" role="tab">Matchday 1</button>
                 </li>
@@ -122,39 +123,25 @@
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#md3-panel" type="button" role="tab">Matchday 3</button>
                 </li>
             </ul>
+        </div>
 
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}, roundAllLocked=${allLocked1}">
-                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
-                    <i class="bi bi-lock-fill display-4"></i>
-                    <h5>Predictions Locked</h5>
-                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
-                </div>
-                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
                         <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}, roundAllLocked=${allLocked2}">
-                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
-                    <i class="bi bi-lock-fill display-4"></i>
-                    <h5>Predictions Locked</h5>
-                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
-                </div>
-                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
                         <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}, roundAllLocked=${allLocked3}">
-                <div th:if="${!roundAllLocked}" class="alert alert-info text-center py-4">
-                    <i class="bi bi-lock-fill display-4"></i>
-                    <h5>Predictions Locked</h5>
-                    <p class="mb-0">Predictions will be visible once all matches in this round are locked in.</p>
-                </div>
-                <div th:if="${roundAllLocked}" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
                         <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
                     </div>
