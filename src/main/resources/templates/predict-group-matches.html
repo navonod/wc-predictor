@@ -39,7 +39,7 @@
                             th:selected="${#strings.equals(g, group)}"></option>
                 </select>
             </div>
-            <ul class="nav nav-tabs ms-auto">
+            <ul class="nav nav-tabs flex-grow-1 justify-content-end">
                 <li class="nav-item" th:each="r : ${rounds}">
                     <a class="nav-link" th:classappend="${selectedRound == r} ? 'active'"
                        th:href="@{/predict/user/{userId}/group/{group}(userId=${target.id}, group=${group}, round=${r})}">
