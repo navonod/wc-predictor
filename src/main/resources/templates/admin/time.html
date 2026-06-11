@@ -70,10 +70,10 @@
                     <tbody>
                         <tr th:each="round : ${rounds}">
                             <td th:text="${round.description}"></td>
-                            <td th:text="${lockTimes[round] != null ? #temporals.format(lockTimes[round], 'MMM d, yyyy HH:mm') : 'N/A'}"></td>
+                            <td th:text="${lockTimes[round.name()] != null ? #temporals.format(lockTimes[round.name()], 'MMM d, yyyy HH:mm') : 'N/A'}"></td>
                             <td>
-                                <span th:if="${locked[round]}" class="badge bg-danger">Locked</span>
-                                <span th:unless="${locked[round]}" class="badge bg-success">Open</span>
+                                <span th:if="${statuses[round.name()] == 'Locked'}" class="badge bg-danger">Locked</span>
+                                <span th:if="${statuses[round.name()] == 'Open'}" class="badge bg-success">Open</span>
                             </td>
                         </tr>
                     </tbody>

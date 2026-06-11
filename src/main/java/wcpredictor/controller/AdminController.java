@@ -257,19 +257,20 @@ public class AdminController {
     public String manageTime(Model model) {
         var now = timeService.now();
         var rounds = matchService.getAllRoundTypes();
-        Map<RoundType, LocalDateTime> lockTimes = new LinkedHashMap<>();
-        Map<RoundType, Boolean> locked = new LinkedHashMap<>();
+        Map<String, LocalDateTime> lockTimes = new LinkedHashMap<>();
+        Map<String, String> statuses = new LinkedHashMap<>();
         for (RoundType round : rounds) {
             var matches = matchService.getMatchesByRound(round);
             var earliest = matches.stream().map(Match::getMatchDate)
                     .filter(Objects::nonNull).min(Comparator.naturalOrder()).orElse(null);
-            lockTimes.put(round, earliest);
-            locked.put(round, !matches.isEmpty() && matches.get(0).isLocked(now));
+            lockTimes.put(round.name(), earliest);
+            boolean lockedStatus = !matches.isEmpty() && matches.get(0).isLocked(now);
+            statuses.put(round.name(), lockedStatus ? "Locked" : "Open");
         }
         model.addAttribute("now", now);
         model.addAttribute("rounds", rounds);
         model.addAttribute("lockTimes", lockTimes);
-        model.addAttribute("locked", locked);
+        model.addAttribute("statuses", statuses);
         model.addAttribute("overrideEnabled", timeService.isOverrideEnabled());
         model.addAttribute("overrideValue", timeService.getOverrideValue());
         return "admin/time";
