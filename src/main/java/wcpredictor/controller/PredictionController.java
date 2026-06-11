@@ -73,6 +73,8 @@ public class PredictionController {
             model.addAttribute("allLocked" + suffix, allLocked);
         }
         model.addAttribute("mdScores", userScores);
+        model.addAttribute("actualScores", predictionService.getActualScores());
+        model.addAttribute("mdPoints", predictionService.getPointsMap(user.getId()));
         return "predict";
     }
 
@@ -188,6 +190,8 @@ public class PredictionController {
         model.addAttribute("scores", predictionService.getUserMatchPredictionScores(target.getId()));
         model.addAttribute("matchLocked", matchLocked);
         model.addAttribute("allLocked", allLocked);
+        model.addAttribute("actual", predictionService.getActualScores());
+        model.addAttribute("points", predictionService.getPointsMap(target.getId()));
         return "predict-group-matches";
     }
 
@@ -262,6 +266,8 @@ public class PredictionController {
         model.addAttribute("scores", predictionService.getUserMatchPredictionScores(target.getId()));
         model.addAttribute("matchLocked", matchLocked);
         model.addAttribute("allLocked", allLocked);
+        model.addAttribute("actual", predictionService.getActualScores());
+        model.addAttribute("points", predictionService.getPointsMap(target.getId()));
         return "predict-stage";
     }
 }

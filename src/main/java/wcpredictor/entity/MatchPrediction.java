@@ -26,4 +26,6 @@ public class MatchPrediction {
 
     @Column(nullable = false)
     private Instant timestamp;
+
+    private Double pointsEarned;
 }

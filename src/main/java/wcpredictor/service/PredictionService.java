@@ -19,6 +19,7 @@ public class PredictionService {
     private final SettingRepository settingRepository;
     private final TeamService teamService;
     private final TimeService timeService;
+    private final ScoringService scoringService;
 
     public PredictionService(MatchPredictionRepository matchPredictionRepo,
                              TournamentPredictionRepository tournamentPredictionRepo,
@@ -26,7 +27,8 @@ public class PredictionService {
                              MatchRepository matchRepository,
                              SettingRepository settingRepository,
                              TeamService teamService,
-                             TimeService timeService) {
+                             TimeService timeService,
+                             ScoringService scoringService) {
         this.matchPredictionRepo = matchPredictionRepo;
         this.tournamentPredictionRepo = tournamentPredictionRepo;
         this.groupAdvancementPredictionRepo = groupAdvancementPredictionRepo;
@@ -34,6 +36,7 @@ public class PredictionService {
         this.settingRepository = settingRepository;
         this.teamService = teamService;
         this.timeService = timeService;
+        this.scoringService = scoringService;
     }
 
     @Transactional
@@ -49,7 +52,19 @@ public class PredictionService {
         prediction.setTeam1Score(team1Score);
         prediction.setTeam2Score(team2Score);
         prediction.setTimestamp(Instant.now());
+        prediction.setPointsEarned(scoringService.scoreMatch(prediction));
         matchPredictionRepo.save(prediction);
+    }
+
+    @Transactional
+    public int recalculatePointsForMatch(UUID matchId) {
+        int count = 0;
+        for (var pred : matchPredictionRepo.findByMatchId(matchId)) {
+            pred.setPointsEarned(scoringService.scoreMatch(pred));
+            matchPredictionRepo.save(pred);
+            count++;
+        }
+        return count;
     }
 
     public List<MatchPrediction> getUserMatchPredictions(UUID userId) {
@@ -149,6 +164,19 @@ public class PredictionService {
                 .collect(Collectors.toMap(
                         p -> p.getMatch().getId(),
                         p -> new int[]{p.getTeam1Score(), p.getTeam2Score()}));
+    }
+
+    public Map<UUID, int[]> getActualScores() {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getTeam1Score() != null)
+                .collect(Collectors.toMap(Match::getId,
+                        m -> new int[]{m.getTeam1Score(), m.getTeam2Score()}));
+    }
+
+    public Map<UUID, Double> getPointsMap(UUID userId) {
+        return matchPredictionRepo.findByUserId(userId).stream()
+                .filter(p -> p.getPointsEarned() != null)
+                .collect(Collectors.toMap(p -> p.getMatch().getId(), MatchPrediction::getPointsEarned));
     }
 
     public Map<Character, List<GroupStanding>> getUserGroupStandings(UUID userId, UUID tournamentId) {

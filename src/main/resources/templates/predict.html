@@ -126,22 +126,22 @@
         <div class="tab-content mb-5">
             <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true})}"></th:block>
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>

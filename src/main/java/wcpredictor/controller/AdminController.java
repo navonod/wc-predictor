@@ -88,6 +88,7 @@ public class AdminController {
         match.setTeam1Score(team1Score);
         match.setTeam2Score(team2Score);
         matchService.save(match);
+        predictionService.recalculatePointsForMatch(matchId);
         return "redirect:/admin/matches";
     }
 
