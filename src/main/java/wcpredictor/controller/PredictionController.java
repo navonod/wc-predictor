@@ -99,10 +99,29 @@ public class PredictionController {
     @GetMapping("/predict/tournament")
     public String tournamentPredictions(Model model, Principal principal) {
         User user = getCurrentUser(principal);
-        var existing = predictionService.getUserTournamentPrediction(user.getId());
+        return "redirect:/predict/user/" + user.getId() + "/tournament";
+    }
+
+    @GetMapping("/predict/user/{userId}/tournament")
+    public String tournamentPredictionsForUser(@PathVariable UUID userId, Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+        boolean isSelf = viewer.getId().equals(userId);
+
+        if (!isSelf && !tournamentStarted()) {
+            model.addAttribute("target", target);
+            model.addAttribute("isSelf", false);
+            model.addAttribute("locked", true);
+            return "predict-tournament";
+        }
+
+        var existing = predictionService.getUserTournamentPrediction(target.getId());
         model.addAttribute("prediction", existing.orElse(new TournamentPrediction()));
         model.addAttribute("teams", teamService.getAllTeams());
         model.addAttribute("tournamentStarted", tournamentStarted());
+        model.addAttribute("target", target);
+        model.addAttribute("isSelf", isSelf);
         return "predict-tournament";
     }
 
@@ -139,6 +158,23 @@ public class PredictionController {
     @GetMapping("/predict/group")
     public String groupPredictions(Model model, Principal principal) {
         User user = getCurrentUser(principal);
+        return "redirect:/predict/user/" + user.getId() + "/group";
+    }
+
+    @GetMapping("/predict/user/{userId}/group")
+    public String groupPredictionsForUser(@PathVariable UUID userId, Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+        boolean isSelf = viewer.getId().equals(userId);
+
+        if (!isSelf && !tournamentStarted()) {
+            model.addAttribute("target", target);
+            model.addAttribute("isSelf", false);
+            model.addAttribute("locked", true);
+            return "predict-group";
+        }
+
         UUID tournamentId = tournamentService.findAll().stream().findFirst()
                 .map(wcpredictor.entity.Tournament::getId).orElse(null);
         if (tournamentId == null) {
@@ -147,11 +183,12 @@ public class PredictionController {
             model.addAttribute("groups", teamService.getGroupedTeams(tournamentId));
         }
 
-        var predictions = predictionService.getUserGroupAdvancementPredictions(user.getId());
+        var predictions = predictionService.getUserGroupAdvancementPredictions(target.getId());
         model.addAttribute("predictedTeamIds", predictions.stream()
                 .map(p -> p.getTeam().getId().toString()).collect(Collectors.toSet()));
         model.addAttribute("tournamentStarted", tournamentStarted());
-
+        model.addAttribute("target", target);
+        model.addAttribute("isSelf", isSelf);
         return "predict-group";
     }
 
