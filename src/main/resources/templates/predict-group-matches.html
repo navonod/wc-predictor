@@ -73,16 +73,7 @@
             <div th:each="match : ${matches}" th:if="${match.round.name() == selectedRound}">
                 <div class="row justify-content-center mb-3">
                     <div class="col-lg-10">
-                        <div class="card shadow-sm match-card">
-                            <div class="card-header text-muted small py-1">
-                                Match <span th:text="${match.matchNumber}"></span> &middot;
-                                <span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
-                                <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
-                            </div>
-                            <div class="card-body py-3">
-                                <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf})}"></th:block>
-                            </div>
-                        </div>
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf})}"></th:block>
                     </div>
                 </div>
             </div>

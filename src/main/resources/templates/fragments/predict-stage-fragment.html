@@ -12,16 +12,7 @@
         <div th:if="${isSelf || allLocked}">
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                 <div class="col" th:each="match : ${matches}">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header text-muted small py-1">
-                            <span th:text="${match.matchNumber}"></span>
-                            <span th:if="${match.groupLetter != null}">&middot; Gr <span th:text="${match.groupLetter}"></span></span>
-                            <span>&middot; </span><span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
-                        </div>
-                        <div class="card-body py-2">
-                            <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf}, compact=${true})}"></th:block>
-                        </div>
-                    </div>
+                    <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf}, compact=${true})}"></th:block>
                 </div>
             </div>
         </div>
