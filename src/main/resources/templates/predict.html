@@ -41,13 +41,12 @@
                 <span th:unless="${isSelf}"><span th:text="${target.nickname}"></span>'s Predictions</span>
             </h2>
             <form th:action="@{/predict/user/{id}(id=${selectedUserId})}" method="get" class="d-flex gap-2" th:if="${allUsers != null}">
-                <select name="id" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+                <select class="form-select form-select-sm" style="width:auto" onchange="if(this.value) location='/predict/user/'+this.value">
                     <option value="" disabled="disabled" selected="selected">Select a player...</option>
                     <option th:each="u : ${allUsers}" th:value="${u.id}"
                             th:text="${u.nickname}"
                             th:selected="${!isSelf && target.id == u.id}"></option>
                 </select>
-            </form>
         </div>
 
         <div th:if="${param.tournamentSaved}" class="alert alert-success alert-dismissible fade show">
