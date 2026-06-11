@@ -120,13 +120,14 @@
                 </div>
             </div>
         </div>
-        <div class="card-footer text-end small py-1">
+        <div class="card-footer text-end small py-1" style="min-height:28px">
             <span th:if="${actual != null && points != null}">
                 <strong>Points: </strong>
                 <span class="badge" th:text="${#numbers.formatDecimal(points, 1, 'COMMA', 1, 'POINT')}"
                       th:classappend="${points >= 3} ? 'bg-success' : (${points >= 2} ? 'bg-warning text-dark' : (${points >= 1} ? 'bg-primary' : 'bg-danger'))"></span>
             </span>
             <span th:if="${locked && actual == null}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
+            <span th:if="${!locked && actual == null}">&nbsp;</span>
         </div>
     </div>
 </th:block>
