@@ -96,7 +96,10 @@
                     </div>
                 </div>
                 <div th:unless="${isSelf}" class="text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap"
+                    <div th:if="${actual == null}" class="text-muted small py-2">
+                        <i class="bi bi-hourglass-split"></i> To Be Revealed
+                    </div>
+                    <div th:if="${actual != null}" class="d-flex align-items-center justify-content-center gap-1 flex-nowrap"
                          th:classappend="${compact != null && compact} ? 'small'">
                         <span class="team-name text-end fw-bold d-none d-md-inline" th:if="${!compact}" th:text="${match.team1?.name}"></span>
                         <span class="d-none d-md-inline" th:if="${compact != null && compact}" th:text="${match.team1?.name}"></span>

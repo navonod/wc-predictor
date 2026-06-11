@@ -46,17 +46,31 @@ public class PredictionController {
 
     @GetMapping("/predict")
     public String predictDashboard(Model model, Principal principal) {
-        User user = getCurrentUser(principal);
+        User viewer = getCurrentUser(principal);
+        return predictForUser(viewer, viewer, model);
+    }
+
+    @GetMapping("/predict/user/{userId}")
+    public String predictForUser(@PathVariable UUID userId, Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+        return predictForUser(viewer, target, model);
+    }
+
+    private String predictForUser(User viewer, User target, Model model) {
         UUID tournamentId = tournamentService.findAll().stream().findFirst()
                 .map(Tournament::getId).orElse(null);
-        model.addAttribute("hasTournamentPrediction", predictionService.getUserTournamentPrediction(user.getId()).isPresent());
-        model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(user.getId()));
-        model.addAttribute("standings", predictionService.getUserGroupStandings(user.getId(), tournamentId));
+        boolean isSelf = viewer.getId().equals(target.getId());
+        model.addAttribute("target", target);
+        model.addAttribute("isSelf", isSelf);
+        model.addAttribute("hasTournamentPrediction", predictionService.getUserTournamentPrediction(target.getId()).isPresent());
+        model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(target.getId()));
+        model.addAttribute("standings", predictionService.getUserGroupStandings(target.getId(), tournamentId));
         model.addAttribute("tournamentStarted", tournamentStarted());
 
-        // Stage view fragment data for all three matchdays
         var now = timeService.now();
-        var userScores = predictionService.getUserMatchPredictionScores(user.getId());
+        var userScores = predictionService.getUserMatchPredictionScores(target.getId());
         List<RoundType> mdRounds = List.of(RoundType.GROUP_MD1, RoundType.GROUP_MD2, RoundType.GROUP_MD3);
         for (RoundType r : mdRounds) {
             var matches = matchService.getMatchesByRound(r);
@@ -67,14 +81,18 @@ public class PredictionController {
                 locked.put(m.getId(), lock);
                 if (!lock) allLocked = false;
             }
-            String suffix = r.name().substring(r.name().length() - 1); // "1", "2", or "3"
+            String suffix = r.name().substring(r.name().length() - 1);
             model.addAttribute("matches" + suffix, matches);
             model.addAttribute("locked" + suffix, locked);
             model.addAttribute("allLocked" + suffix, allLocked);
         }
         model.addAttribute("mdScores", userScores);
         model.addAttribute("actualScores", predictionService.getActualScores());
-        model.addAttribute("mdPoints", predictionService.getPointsMap(user.getId()));
+        model.addAttribute("mdPoints", predictionService.getPointsMap(target.getId()));
+        model.addAttribute("allUsers", userService.findAll().stream()
+                .filter(u -> u.getConfirmed() != null && u.getConfirmed())
+                .filter(u -> u.getNickname() != null && !u.getNickname().isBlank())
+                .toList());
         return "predict";
     }
 

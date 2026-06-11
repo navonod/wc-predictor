@@ -35,7 +35,20 @@
     </nav>
 
     <div class="container">
-        <h2 class="mb-4"><i class="bi bi-pencil-square"></i> Your Predictions</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><i class="bi bi-pencil-square"></i>
+                <span th:if="${isSelf}">Your Predictions</span>
+                <span th:unless="${isSelf}"><span th:text="${target.nickname}"></span>'s Predictions</span>
+            </h2>
+            <form th:action="@{/predict/user/{id}(id=${selectedUserId})}" method="get" class="d-flex gap-2" th:if="${allUsers != null}">
+                <select name="id" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+                    <option value="" disabled="disabled" selected="selected">Select a player...</option>
+                    <option th:each="u : ${allUsers}" th:value="${u.id}"
+                            th:text="${u.nickname}"
+                            th:selected="${!isSelf && target.id == u.id}"></option>
+                </select>
+            </form>
+        </div>
 
         <div th:if="${param.tournamentSaved}" class="alert alert-success alert-dismissible fade show">
             Tournament predictions saved!
@@ -88,7 +101,7 @@
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white py-1 px-2 d-flex justify-content-between align-items-center">
                         <small><strong>Group <span th:text="${entry.key}"></span></strong></small>
-                        <a th:href="@{/predict/user/{userId}/group/{group}(userId=${currentUser.id}, group=${entry.key})}"
+                        <a th:href="@{/predict/user/{userId}/group/{group}(userId=${target.id}, group=${entry.key})}"
                            class="btn btn-light btn-sm py-0 px-2">Score</a>
                     </div>
                     <div class="card-body p-0">
@@ -127,21 +140,21 @@
             <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>
             <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}">
                 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${true}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
                     </div>
                 </div>
             </div>
