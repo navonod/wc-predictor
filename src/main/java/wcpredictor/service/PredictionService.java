@@ -18,25 +18,28 @@ public class PredictionService {
     private final MatchRepository matchRepository;
     private final SettingRepository settingRepository;
     private final TeamService teamService;
+    private final TimeService timeService;
 
     public PredictionService(MatchPredictionRepository matchPredictionRepo,
                              TournamentPredictionRepository tournamentPredictionRepo,
                              GroupAdvancementPredictionRepository groupAdvancementPredictionRepo,
                              MatchRepository matchRepository,
                              SettingRepository settingRepository,
-                             TeamService teamService) {
+                             TeamService teamService,
+                             TimeService timeService) {
         this.matchPredictionRepo = matchPredictionRepo;
         this.tournamentPredictionRepo = tournamentPredictionRepo;
         this.groupAdvancementPredictionRepo = groupAdvancementPredictionRepo;
         this.matchRepository = matchRepository;
         this.settingRepository = settingRepository;
         this.teamService = teamService;
+        this.timeService = timeService;
     }
 
     @Transactional
     public void saveMatchPrediction(User user, UUID matchId, Integer team1Score, Integer team2Score) {
         Match match = matchRepository.findById(matchId).orElseThrow();
-        if (match.isLocked()) {
+        if (match.isLocked(timeService.now())) {
             throw new IllegalStateException("Predictions are closed for this match.");
         }
         MatchPrediction prediction = matchPredictionRepo.findByUserIdAndMatchId(user.getId(), matchId)

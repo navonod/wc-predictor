@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import wcpredictor.entity.*;
 import wcpredictor.service.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Controller
@@ -23,11 +24,12 @@ public class AdminController {
     private final UserService userService;
     private final TournamentService tournamentService;
     private final PredictionService predictionService;
+    private final TimeService timeService;
 
     public AdminController(TeamService teamService, MatchService matchService,
                             SettingService settingService, PoolService poolService,
                             UserService userService, TournamentService tournamentService,
-                            PredictionService predictionService) {
+                            PredictionService predictionService, TimeService timeService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
@@ -35,6 +37,7 @@ public class AdminController {
         this.userService = userService;
         this.tournamentService = tournamentService;
         this.predictionService = predictionService;
+        this.timeService = timeService;
     }
 
     @GetMapping
@@ -248,5 +251,38 @@ public class AdminController {
         model.addAttribute("noProfile", noProfile);
         model.addAttribute("noPredictions", noPredictions);
         return "admin/users";
+    }
+
+    @GetMapping("/time")
+    public String manageTime(Model model) {
+        var now = timeService.now();
+        var rounds = matchService.getAllRoundTypes();
+        Map<RoundType, LocalDateTime> lockTimes = new LinkedHashMap<>();
+        Map<RoundType, Boolean> locked = new LinkedHashMap<>();
+        for (RoundType round : rounds) {
+            var matches = matchService.getMatchesByRound(round);
+            var earliest = matches.stream().map(Match::getMatchDate)
+                    .filter(Objects::nonNull).min(Comparator.naturalOrder()).orElse(null);
+            lockTimes.put(round, earliest);
+            locked.put(round, !matches.isEmpty() && matches.get(0).isLocked(now));
+        }
+        model.addAttribute("now", now);
+        model.addAttribute("rounds", rounds);
+        model.addAttribute("lockTimes", lockTimes);
+        model.addAttribute("locked", locked);
+        model.addAttribute("overrideEnabled", timeService.isOverrideEnabled());
+        model.addAttribute("overrideValue", timeService.getOverrideValue());
+        return "admin/time";
+    }
+
+    @PostMapping("/time/toggle")
+    public String toggleTime(@RequestParam(required = false) String overrideTime,
+                              @RequestParam(required = false, defaultValue = "false") boolean enable) {
+        if (enable && overrideTime != null && !overrideTime.isBlank()) {
+            timeService.enableOverride(LocalDateTime.parse(overrideTime));
+        } else {
+            timeService.disableOverride();
+        }
+        return "redirect:/admin/time";
     }
 }

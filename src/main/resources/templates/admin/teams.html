@@ -17,6 +17,7 @@
                     <li class="nav-item"><a class="nav-link active text-warning" href="/admin">Admin</a></li>
                 </ul>
                 <span class="navbar-text" sec:authentication="name"></span>
+                <span class="badge bg-danger ms-2" th:if="${dummyTimeActive}"><i class="bi bi-cone-striped"></i> DUMMY TIME</span>
             </div>
         </div>
     </nav>

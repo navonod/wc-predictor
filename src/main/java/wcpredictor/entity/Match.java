@@ -48,10 +48,14 @@ public class Match {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private boolean matchDateEstimated = false;
 
-    public boolean isLocked() {
+    public boolean isLocked(LocalDateTime now) {
         if (predictionsLocked) return true;
-        if (predictionsLockTime != null && LocalDateTime.now(ZoneOffset.UTC).isAfter(predictionsLockTime)) return true;
+        if (predictionsLockTime != null && now.isAfter(predictionsLockTime)) return true;
         return false;
+    }
+
+    public boolean getLocked() {
+        return isLocked(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
