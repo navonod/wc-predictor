@@ -19,19 +19,20 @@
                             <span>&middot; </span><span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
                         </div>
                         <div class="card-body py-2">
-                            <div th:if="${matchLocked[match.id]}" class="text-center">
-                                <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap small">
-                                    <span class="d-none d-md-inline" th:text="${match.team1?.name}"></span>
-                                    <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
-                                    <span class="fw-bold mx-1" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
-                                    <span class="text-muted mx-1" th:if="${scores[match.id] == null}">-</span>
-                                    <span class="text-muted">&ndash;</span>
-                                    <span class="fw-bold mx-1" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
-                                    <span class="text-muted mx-1" th:if="${scores[match.id] == null}">-</span>
-                                    <span class="d-none d-md-inline" th:text="${match.team2?.name}"></span>
-                                    <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
-                                </div>
+                        <div th:if="${matchLocked[match.id]}" class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1 flex-nowrap small">
+                                <span class="d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                                <span class="d-md-none fw-bold" th:text="${match.team1?.countryCode}"></span>
+                                <span class="fw-bold mx-1" th:if="${scores[match.id] != null}" th:text="${scores[match.id][0]}"></span>
+                                <span class="text-muted mx-1" th:if="${scores[match.id] == null}">-</span>
+                                <span class="text-muted">&ndash;</span>
+                                <span class="fw-bold mx-1" th:if="${scores[match.id] != null}" th:text="${scores[match.id][1]}"></span>
+                                <span class="text-muted mx-1" th:if="${scores[match.id] == null}">-</span>
+                                <span class="d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                                <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
                             </div>
+                            <span class="badge bg-danger mt-1"><i class="bi bi-lock-fill"></i> Predictions closed</span>
+                        </div>
                             <div th:unless="${matchLocked[match.id]}">
                                 <div th:if="${isSelf}">
                                     <div>
