@@ -68,10 +68,10 @@
                         <td>
                             <a th:href="@{/player/{id}(id=${entry.userId})}" class="text-decoration-none" th:text="${entry.displayName}"></a>
                         </td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.matchPoints, 0, 'COMMA', 1, 'POINT')}"></td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.awardPoints, 0, 'COMMA', 1, 'POINT')}"></td>
-                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.groupPoints, 0, 'COMMA', 1, 'POINT')}"></td>
-                        <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(entry.totalPoints, 0, 'COMMA', 1, 'POINT')}"></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.matchPoints, 1, 'COMMA', 1, 'POINT')}"></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.awardPoints, 1, 'COMMA', 1, 'POINT')}"></td>
+                        <td class="text-end" th:text="${#numbers.formatDecimal(entry.groupPoints, 1, 'COMMA', 1, 'POINT')}"></td>
+                        <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(entry.totalPoints, 1, 'COMMA', 1, 'POINT')}"></td>
                     </tr>
                 </tbody>
             </table>
