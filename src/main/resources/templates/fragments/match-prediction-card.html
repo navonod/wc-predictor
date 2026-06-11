@@ -45,7 +45,6 @@
                     <span class="d-none d-md-inline" th:if="${compact != null && compact}" th:text="${match.team2?.name}"></span>
                     <span class="d-md-none fw-bold" th:text="${match.team2?.countryCode}"></span>
                 </div>
-                <span class="badge bg-danger mt-1"><i class="bi bi-lock-fill"></i> Predictions closed</span>
             </div>
             <!-- Open for predictions -->
             <div th:unless="${locked || actual != null}">
@@ -118,8 +117,11 @@
                 </div>
             </div>
         </div>
-        <div th:if="${actual != null && points != null}" class="card-footer text-end small py-1">
-            <strong>Points earned: <span th:text="${#numbers.formatDecimal(points, 0, 'COMMA', 1, 'POINT')}"></span></strong>
+        <div class="card-footer text-end small py-1">
+            <span th:if="${actual != null && points != null}">
+                <strong>Points earned: <span th:text="${#numbers.formatDecimal(points, 0, 'COMMA', 1, 'POINT')}"></span></strong>
+            </span>
+            <span th:if="${locked && actual == null}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
         </div>
     </div>
 </th:block>
