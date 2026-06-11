@@ -75,8 +75,12 @@ public class PredictionController {
                                              @RequestParam(required = false) String entertaining,
                                              @RequestParam(required = false) UUID finalist1,
                                              @RequestParam(required = false) UUID finalist2,
-                                             @RequestParam(required = false) UUID champion,
-                                             Principal principal) {
+                                              @RequestParam(required = false) UUID champion,
+                                             Principal principal, RedirectAttributes ra) {
+        if (tournamentStarted()) {
+            ra.addFlashAttribute("error", "The tournament has started. Tournament predictions are closed.");
+            return "redirect:/predict";
+        }
         User user = getCurrentUser(principal);
         TournamentPrediction tp = new TournamentPrediction();
         tp.setGoldenBoot(goldenBoot);
@@ -150,7 +154,11 @@ public class PredictionController {
                                             @RequestParam Map<String, String> params,
                                             @RequestParam String redirect,
                                             Principal principal,
-                                            RedirectAttributes ra) {
+                                        RedirectAttributes ra) {
+        if (tournamentStarted()) {
+            ra.addFlashAttribute("error", "The tournament has started. Group advancement predictions are closed.");
+            return "redirect:/predict";
+        }
         User user = getCurrentUser(principal);
         try {
             for (var entry : params.entrySet()) {
