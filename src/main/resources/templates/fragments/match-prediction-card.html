@@ -128,6 +128,7 @@
             </span>
             <span th:if="${locked && actual == null}" class="badge bg-warning text-dark"><i class="bi bi-lock-fill"></i> Closed</span>
             <span th:if="${!locked && actual == null}">&nbsp;</span>
+            <span th:if="${actual != null && points == null}">&nbsp;</span>
         </div>
     </div>
 </th:block>
