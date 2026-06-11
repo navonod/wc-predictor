@@ -131,21 +131,42 @@ public class PredictionController {
     }
 
     @GetMapping("/predict/group/{group}")
-    public String groupMatchPredictions(@PathVariable char group,
+    public String groupMatchPredictionsLegacy(@PathVariable char group,
+                                               @RequestParam(required = false, defaultValue = "GROUP_MD1") String round,
+                                               Principal principal) {
+        User user = getCurrentUser(principal);
+        return "redirect:/predict/user/" + user.getId() + "/group/" + group + "?round=" + round;
+    }
+
+    @GetMapping("/predict/user/{userId}/group/{group}")
+    public String groupMatchPredictions(@PathVariable UUID userId, @PathVariable char group,
                                          @RequestParam(required = false, defaultValue = "GROUP_MD1") String round,
                                          Model model, Principal principal) {
-        User user = getCurrentUser(principal);
+        User viewer = getCurrentUser(principal);
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+
+        boolean isSelf = viewer.getId().equals(userId);
         var matches = matchService.getMatchesByGroup(String.valueOf(group));
         var now = timeService.now();
         Map<UUID, Boolean> matchLocked = new HashMap<>();
-        for (Match m : matches) matchLocked.put(m.getId(), m.isLocked(now));
+        boolean allLocked = true;
+        for (Match m : matches) {
+            boolean locked = m.isLocked(now);
+            matchLocked.put(m.getId(), locked);
+            if (!locked) allLocked = false;
+        }
 
+        model.addAttribute("target", target);
+        model.addAttribute("isSelf", isSelf);
         model.addAttribute("group", group);
+        model.addAttribute("groups", "ABCDEFGHIJKL".chars().mapToObj(c -> String.valueOf((char) c)).toList());
         model.addAttribute("matches", matches);
         model.addAttribute("selectedRound", round);
         model.addAttribute("rounds", List.of("GROUP_MD1", "GROUP_MD2", "GROUP_MD3"));
-        model.addAttribute("scores", predictionService.getUserMatchPredictionScores(user.getId()));
+        model.addAttribute("scores", predictionService.getUserMatchPredictionScores(target.getId()));
         model.addAttribute("matchLocked", matchLocked);
+        model.addAttribute("allLocked", allLocked);
         return "predict-group-matches";
     }
 

@@ -88,7 +88,7 @@
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white py-1 px-2 d-flex justify-content-between align-items-center">
                         <small><strong>Group <span th:text="${entry.key}"></span></strong></small>
-                        <a th:href="@{/predict/group/{group}(group=${entry.key})}"
+                        <a th:href="@{/predict/user/{userId}/group/{group}(userId=${currentUser.id}, group=${entry.key})}"
                            class="btn btn-light btn-sm py-0 px-2">Score</a>
                     </div>
                     <div class="card-body p-0">
