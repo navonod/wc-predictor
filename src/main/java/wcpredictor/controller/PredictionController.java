@@ -159,7 +159,8 @@ public class PredictionController {
 
         model.addAttribute("target", target);
         model.addAttribute("isSelf", isSelf);
-        model.addAttribute("group", group);
+        model.addAttribute("group", String.valueOf(group));
+        model.addAttribute("groupChar", group);
         model.addAttribute("groups", "ABCDEFGHIJKL".chars().mapToObj(c -> String.valueOf((char) c)).toList());
         model.addAttribute("matches", matches);
         model.addAttribute("selectedRound", round);
