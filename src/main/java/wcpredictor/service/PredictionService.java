@@ -87,6 +87,10 @@ public class PredictionService {
         return bracketService.getKnockoutBracket(getUserMatchPredictionScores(userId), tournamentId);
     }
 
+    public Map<RoundType, List<BracketMatch>> getAllKnockoutRounds(UUID userId, UUID tournamentId) {
+        return bracketService.getAllKnockoutRounds(getUserMatchPredictionScores(userId), tournamentId);
+    }
+
     @Transactional
     public void saveTournamentPrediction(User user, TournamentPrediction prediction) {
         TournamentPrediction existing = tournamentPredictionRepo.findByUserId(user.getId())

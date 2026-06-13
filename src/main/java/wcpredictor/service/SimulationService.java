@@ -101,6 +101,10 @@ public class SimulationService {
         return bracketService.getKnockoutBracket(getUserScores(user), getFirstTournamentId());
     }
 
+    public Map<RoundType, List<BracketMatch>> getAllKnockoutRounds(User user) {
+        return bracketService.getAllKnockoutRounds(getUserScores(user), getFirstTournamentId());
+    }
+
     private UUID getFirstTournamentId() {
         return tournamentService.findAll().stream().findFirst()
                 .map(Tournament::getId).orElse(null);

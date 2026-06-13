@@ -95,26 +95,28 @@
             </div>
         </div>
 
-        <div th:if="${bracket != null and !bracket.isEmpty()}" class="card shadow-sm mb-4">
-            <div class="card-header bg-success text-white py-2">
-                <strong>Round of 32</strong>
-            </div>
-            <div class="card-body p-0">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr><th>#</th><th>Date</th><th>Venue</th><th>Home</th><th></th><th>Away</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="m : ${bracket}">
-                            <td th:text="${m.matchNumber}"></td>
-                            <td th:text="${#temporals.format(m.matchDate, 'MMM d, HH:mm')}"></td>
-                            <td class="small" th:text="${m.venue}"></td>
-                            <td th:text="${m.team1Name}"></td>
-                            <td class="text-center">vs</td>
-                            <td th:text="${m.team2Name}"></td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div th:if="${allRounds != null and !allRounds.isEmpty()}">
+            <div th:each="entry : ${allRounds}" th:if="${entry.value != null and !entry.value.isEmpty()}" class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white py-2">
+                    <strong th:text="${entry.key.description}"></strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr><th>#</th><th>Date</th><th>Venue</th><th>Home</th><th></th><th>Away</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${entry.value}">
+                                <td th:text="${m.matchNumber}"></td>
+                                <td th:text="${#temporals.format(m.matchDate, 'MMM d, HH:mm')}"></td>
+                                <td class="small" th:text="${m.venue}"></td>
+                                <td th:text="${m.team1Name}"></td>
+                                <td class="text-center">vs</td>
+                                <td th:text="${m.team2Name}"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

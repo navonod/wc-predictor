@@ -165,4 +165,76 @@ public class KnockoutBracketService {
         if (t1 != null && t2 != null)
             bracket.add(new BracketMatch(num, date, venue, t1.getName(), t2.getName()));
     }
+
+    public Map<RoundType, List<BracketMatch>> getAllKnockoutRounds(Map<UUID, int[]> scores, UUID tournamentId) {
+        Map<RoundType, List<BracketMatch>> rounds = new LinkedHashMap<>();
+
+        List<BracketMatch> r32 = getKnockoutBracket(scores, tournamentId);
+        rounds.put(RoundType.ROUND_OF_32, r32);
+
+        Map<Integer, String> winnerCache = new HashMap<>();
+        for (BracketMatch m : r32) {
+            int[] s = scores.get(matchIdByNumber(m.getMatchNumber()));
+            if (s != null) winnerCache.put(m.getMatchNumber(), s[0] > s[1] ? m.getTeam1Name() : m.getTeam2Name());
+        }
+
+        List<Match> knockoutTemplates = matchRepository.findByRoundInOrderByMatchDateAsc(
+                List.of(RoundType.ROUND_OF_16, RoundType.QUARTER_FINAL,
+                        RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL));
+
+        int[][] sources = {
+            {74,77,90},{73,75,89},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
+            {89,90,97},{93,94,98},{91,92,99},{95,96,100},
+            {97,98,101},{99,100,102},
+            {101,102,103,true},{101,102,104,false}
+        };
+        int si = 0;
+
+        for (Match tmpl : knockoutTemplates) {
+            int[] src = sources[si++];
+            int src1 = src[0], src2 = src[1], dest = src[2];
+            boolean isThirdPlace = src.length > 3 && (boolean) src[3];
+
+            String t1Name = winnerName(src1, winnerCache, scores, isThirdPlace);
+            String t2Name = winnerName(src2, winnerCache, scores, isThirdPlace);
+
+            BracketMatch bm = new BracketMatch(dest, tmpl.getMatchDate(),
+                    tmpl.getVenue() != null ? tmpl.getVenue() : "", t1Name, t2Name);
+            rounds.computeIfAbsent(tmpl.getRound(), k -> new ArrayList<>()).add(bm);
+
+            int[] destScores = scores.get(tmpl.getId());
+            if (destScores != null && dest.isThirdPlace()) {
+                winnerCache.put(dest, destScores[0] > destScores[1] ? t1Name : t2Name);
+            } else if (destScores != null) {
+                winnerCache.put(dest, destScores[0] > destScores[1] ? t1Name : t2Name);
+            }
+        }
+        return rounds;
+    }
+
+    private String winnerName(int matchNum, Map<Integer, String> cache,
+                               Map<UUID, int[]> scores, boolean isLoser) {
+        String cached = cache.get(matchNum);
+        if (cached != null) {
+            if (!isLoser) return cached;
+            var match = matchRepository.findAll().stream()
+                    .filter(m -> m.getMatchNumber() == matchNum).findFirst().orElse(null);
+            if (match != null) {
+                int[] s = scores.get(match.getId());
+                if (s != null) {
+                    boolean t1Won = s[0] > s[1];
+                    String loser = t1Won ? match.getTeam2() != null ? match.getTeam2().getName() : null
+                                         : match.getTeam1() != null ? match.getTeam1().getName() : null;
+                    if (loser != null) return loser;
+                }
+            }
+        }
+        return "Winner Match " + matchNum;
+    }
+
+    private UUID matchIdByNumber(int matchNum) {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getMatchNumber() == matchNum).findFirst()
+                .map(Match::getId).orElse(null);
+    }
 }

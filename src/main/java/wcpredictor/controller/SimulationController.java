@@ -29,6 +29,7 @@ public class SimulationController {
         model.addAttribute("standings", simulationService.getUserStandings(user));
         model.addAttribute("bestThirds", simulationService.getUserBestThirds(user));
         model.addAttribute("bracket", simulationService.getKnockoutBracket(user));
+        model.addAttribute("allRounds", simulationService.getAllKnockoutRounds(user));
         model.addAttribute("hasSimulation", simulationService.hasSimulation(user));
         return "simulate";
     }
