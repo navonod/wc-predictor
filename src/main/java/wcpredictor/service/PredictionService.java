@@ -20,6 +20,7 @@ public class PredictionService {
     private final TeamService teamService;
     private final TimeService timeService;
     private final ScoringService scoringService;
+    private final KnockoutBracketService bracketService;
 
     public PredictionService(MatchPredictionRepository matchPredictionRepo,
                              TournamentPredictionRepository tournamentPredictionRepo,
@@ -28,7 +29,8 @@ public class PredictionService {
                              SettingRepository settingRepository,
                              TeamService teamService,
                              TimeService timeService,
-                             ScoringService scoringService) {
+                             ScoringService scoringService,
+                             KnockoutBracketService bracketService) {
         this.matchPredictionRepo = matchPredictionRepo;
         this.tournamentPredictionRepo = tournamentPredictionRepo;
         this.groupAdvancementPredictionRepo = groupAdvancementPredictionRepo;
@@ -37,6 +39,7 @@ public class PredictionService {
         this.teamService = teamService;
         this.timeService = timeService;
         this.scoringService = scoringService;
+        this.bracketService = bracketService;
     }
 
     @Transactional
@@ -78,6 +81,10 @@ public class PredictionService {
 
     public Optional<MatchPrediction> getUserPredictionForMatch(UUID userId, UUID matchId) {
         return matchPredictionRepo.findByUserIdAndMatchId(userId, matchId);
+    }
+
+    public List<BracketMatch> getKnockoutBracket(UUID userId, UUID tournamentId) {
+        return bracketService.getKnockoutBracket(getUserMatchPredictionScores(userId), tournamentId);
     }
 
     @Transactional

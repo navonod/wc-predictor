@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import wcpredictor.entity.RoundType;
 import wcpredictor.entity.User;
-import wcpredictor.service.GroupStageSimulationService;
+import wcpredictor.service.SimulationService;
 import wcpredictor.service.MatchService;
 
 import java.util.List;
@@ -15,10 +15,10 @@ import java.util.UUID;
 @Controller
 public class SimulationController {
 
-    private final GroupStageSimulationService simulationService;
+    private final SimulationService simulationService;
     private final MatchService matchService;
 
-    public SimulationController(GroupStageSimulationService simulationService,
+    public SimulationController(SimulationService simulationService,
                                  MatchService matchService) {
         this.simulationService = simulationService;
         this.matchService = matchService;
