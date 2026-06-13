@@ -89,6 +89,7 @@ public class PredictionController {
         model.addAttribute("mdScores", userScores);
         model.addAttribute("actualScores", predictionService.getActualScores());
         model.addAttribute("mdPoints", predictionService.getPointsMap(target.getId()));
+        model.addAttribute("bracket", predictionService.getKnockoutBracket(target.getId(), tournamentId));
         model.addAttribute("allUsers", userService.findAll().stream()
                 .filter(u -> u.getConfirmed() != null && u.getConfirmed())
                 .filter(u -> u.getNickname() != null && !u.getNickname().isBlank())
