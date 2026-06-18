@@ -183,7 +183,7 @@ public class KnockoutBracketService {
                 List.of(RoundType.ROUND_OF_16, RoundType.QUARTER_FINAL,
                         RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL));
 
-        int[][] sources = {
+        Object[][] sources = {
             {74,77,90},{73,75,89},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
             {89,90,97},{93,94,98},{91,92,99},{95,96,100},
             {97,98,101},{99,100,102},
@@ -192,8 +192,8 @@ public class KnockoutBracketService {
         int si = 0;
 
         for (Match tmpl : knockoutTemplates) {
-            int[] src = sources[si++];
-            int src1 = src[0], src2 = src[1], dest = src[2];
+            Object[] src = sources[si++];
+            int src1 = (int) src[0], src2 = (int) src[1], dest = (int) src[2];
             boolean isThirdPlace = src.length > 3 && (boolean) src[3];
 
             String t1Name = winnerName(src1, winnerCache, scores, isThirdPlace);
@@ -204,9 +204,7 @@ public class KnockoutBracketService {
             rounds.computeIfAbsent(tmpl.getRound(), k -> new ArrayList<>()).add(bm);
 
             int[] destScores = scores.get(tmpl.getId());
-            if (destScores != null && dest.isThirdPlace()) {
-                winnerCache.put(dest, destScores[0] > destScores[1] ? t1Name : t2Name);
-            } else if (destScores != null) {
+            if (destScores != null) {
                 winnerCache.put(dest, destScores[0] > destScores[1] ? t1Name : t2Name);
             }
         }

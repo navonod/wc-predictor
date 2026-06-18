@@ -1,5 +1,7 @@
 package wcpredictor.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wcpredictor.entity.*;
@@ -11,6 +13,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PredictionService {
+
+    private static final Logger log = LoggerFactory.getLogger(PredictionService.class);
 
     private final MatchPredictionRepository matchPredictionRepo;
     private final TournamentPredictionRepository tournamentPredictionRepo;
@@ -89,6 +93,67 @@ public class PredictionService {
 
     public Map<RoundType, List<BracketMatch>> getAllKnockoutRounds(UUID userId, UUID tournamentId) {
         return bracketService.getAllKnockoutRounds(getUserMatchPredictionScores(userId), tournamentId);
+    }
+
+    public Match findCurrentMatch() {
+        var now = timeService.now();
+        var all = matchRepository.findAllByOrderByMatchDateAsc();
+        log.info("findCurrentMatch: now={}, totalMatches={}", now, all.size());
+        for (var m : all) {
+            if (m.getMatchDate() != null) {
+                if (m.getMatchNumber() == 17) {
+                    log.info("  Match 17 check: date={}, minus15={}, plus3h={}",
+                            m.getMatchDate(), m.getMatchDate().minusMinutes(15),
+                            m.getMatchDate().plusHours(3));
+                    log.info("    !now.isBefore(minus15)={}, now.isBefore(plus3h)={}",
+                            !now.isBefore(m.getMatchDate().minusMinutes(15)),
+                            now.isBefore(m.getMatchDate().plusHours(3)));
+                }
+                boolean inWindow = !now.isBefore(m.getMatchDate().minusMinutes(15))
+                        && now.isBefore(m.getMatchDate().plusHours(3));
+                if (inWindow) {
+                    log.info("  Found: match {} date={}", m.getMatchNumber(), m.getMatchDate());
+                    return m;
+                }
+            }
+        }
+        log.info("  No current match found");
+        return null;
+    }
+
+    public List<AsItStandEntry> getAsItStandsBoard(Match match, UUID currentUserId) {
+        var results = new ArrayList<AsItStandEntry>();
+        boolean hasScores = match.getTeam1Score() != null && match.getTeam2Score() != null;
+        var preds = matchPredictionRepo.findByMatchId(match.getId());
+        log.info("AIS board: match={}, totalPreds={}, currentUser={}, hasScores={}",
+                match.getMatchNumber(), preds.size(), currentUserId, hasScores);
+        for (var pred : preds) {
+            UUID uid = pred.getUser().getId();
+            if (uid.equals(currentUserId)) {
+                log.info("  Skipping own prediction for user {}", pred.getUser().getEmailAddress());
+                continue;
+            }
+            double ais = hasScores ? scoringService.scoreMatch(pred) : 0;
+            double total = scoringService.getTotalPoints(uid);
+            results.add(new AsItStandEntry(pred.getUser(), pred, ais, total));
+        }
+        log.info("  AIS board results: {} entries", results.size());
+        results.sort((a, b) -> Double.compare(b.ais, a.ais));
+        return results;
+    }
+
+    public static class AsItStandEntry {
+        public final User user;
+        public final MatchPrediction prediction;
+        public final double ais;
+        public final double total;
+
+        public AsItStandEntry(User user, MatchPrediction pred, double ais, double total) {
+            this.user = user;
+            this.prediction = pred;
+            this.ais = ais;
+            this.total = total;
+        }
     }
 
     @Transactional

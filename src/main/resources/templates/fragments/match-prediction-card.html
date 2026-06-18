@@ -3,7 +3,7 @@
         <div class="card-header text-muted small py-1">
             <span th:text="${match.matchNumber}"></span>
             <span th:if="${match.groupLetter != null}">&middot; Gr <span th:text="${match.groupLetter}"></span></span>
-            <span>&middot; </span><span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
+            <span>&middot; </span><span class="local-time" th:attr="data-utc=${match.matchDate}"></span>
             <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
         </div>
         <div class="card-body" th:classappend="${compact != null && compact} ? 'py-2' : 'py-3'">

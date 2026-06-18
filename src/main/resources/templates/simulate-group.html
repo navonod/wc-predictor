@@ -56,7 +56,7 @@
                     <div class="card shadow-sm match-card">
                         <div class="card-header text-muted small py-1">
                             Match <span th:text="${match.matchNumber}"></span> &middot;
-                            <span th:text="${#temporals.format(match.matchDate, 'MMM d, HH:mm')}"></span>
+                            <span th:if="${match.venue != null}">&middot; <span class="local-time" th:attr="data-utc=${match.matchDate}"></span></span>
                             <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
                         </div>
                         <div class="card-body py-3">
@@ -104,6 +104,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/local-time.js"></script>
     <script>
         function randomScore() {
             const roll = Math.random();

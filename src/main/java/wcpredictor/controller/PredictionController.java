@@ -95,6 +95,12 @@ public class PredictionController {
                 .filter(u -> u.getConfirmed() != null && u.getConfirmed())
                 .filter(u -> u.getNickname() != null && !u.getNickname().isBlank())
                 .toList());
+        var currentMatch = predictionService.findCurrentMatch();
+        model.addAttribute("currentMatch", currentMatch);
+        model.addAttribute("currentMatchLocked", currentMatch != null && currentMatch.isLocked(timeService.now()));
+        if (currentMatch != null) {
+            model.addAttribute("aisBoard", predictionService.getAsItStandsBoard(currentMatch, target.getId()));
+        }
         return "predict";
     }
 
@@ -326,5 +332,17 @@ public class PredictionController {
         model.addAttribute("actual", predictionService.getActualScores());
         model.addAttribute("points", predictionService.getPointsMap(target.getId()));
         return "predict-stage";
+    }
+
+    @GetMapping("/api/live-scores/{matchId}")
+    @ResponseBody
+    public Map<String, Object> liveScores(@PathVariable UUID matchId) {
+        var match = matchService.findById(matchId).orElse(null);
+        if (match == null) return Map.of("error", "Match not found");
+        return Map.of(
+            "matchNumber", match.getMatchNumber(),
+            "team1Score", match.getTeam1Score() != null ? match.getTeam1Score() : null,
+            "team2Score", match.getTeam2Score() != null ? match.getTeam2Score() : null
+        );
     }
 }
