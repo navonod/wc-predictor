@@ -98,8 +98,12 @@ public class PredictionController {
         var currentMatch = predictionService.findCurrentMatch();
         model.addAttribute("currentMatch", currentMatch);
         model.addAttribute("currentMatchLocked", currentMatch != null && currentMatch.isLocked(timeService.now()));
+        model.addAttribute("currentMatchIsLive", currentMatch != null
+                && currentMatch.getMatchDate() != null
+                && timeService.now().isBefore(currentMatch.getMatchDate().plusHours(3)));
         if (currentMatch != null) {
             model.addAttribute("aisBoard", predictionService.getAsItStandsBoard(currentMatch, target.getId()));
+            model.addAttribute("currentUserId", target.getId());
         }
         return "predict";
     }
@@ -344,5 +348,29 @@ public class PredictionController {
             "team1Score", match.getTeam1Score() != null ? match.getTeam1Score() : null,
             "team2Score", match.getTeam2Score() != null ? match.getTeam2Score() : null
         );
+    }
+
+    @GetMapping("/match/{id}")
+    public String matchDetail(@PathVariable UUID id, Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        Match match = matchService.findById(id).orElse(null);
+        if (match == null) return "redirect:/predict";
+
+        var scores = predictionService.getUserMatchPredictionScores(viewer.getId());
+        var now = timeService.now();
+        boolean locked = match.isLocked(now);
+
+        model.addAttribute("match", match);
+        model.addAttribute("score", scores.get(match.getId()));
+        model.addAttribute("locked", locked);
+        model.addAttribute("isSelf", true);
+        model.addAttribute("aisBoard", predictionService.getAsItStandsBoard(match, viewer.getId()));
+        model.addAttribute("currentUserId", viewer.getId());
+        model.addAttribute("actual", match.getTeam1Score() != null
+                ? new int[]{match.getTeam1Score(), match.getTeam2Score()} : null);
+        model.addAttribute("points", predictionService.getPointsMap(viewer.getId()).get(match.getId()));
+        model.addAttribute("isLive", match.getMatchDate() != null
+                && timeService.now().isBefore(match.getMatchDate().plusHours(3)));
+        return "match-detail";
     }
 }

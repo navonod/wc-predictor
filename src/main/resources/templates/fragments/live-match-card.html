@@ -1,0 +1,74 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="live-card(match, locked, actual, points, aisBoard, currentUserId, title, isLive)">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger text-white py-2">
+            <strong><i class="bi bi-broadcast" th:if="${isLive}"></i> <span th:text="${title}"></span></strong>
+            <small class="ms-2" th:if="${actual != null}" th:text="${match.team1?.name + ' ' + actual[0] + ' - ' + actual[1] + ' ' + match.team2?.name}"></small>
+            <small class="ms-2 text-white-50" th:unless="${actual != null}" th:text="${match.team1?.name + ' vs ' + match.team2?.name}"></small>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4 border-end text-center">
+                    <h6 class="text-muted mb-3" th:if="${isLive}">Live Score</h6>
+                    <h6 class="text-muted mb-3" th:unless="${isLive}">Score</h6>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <span class="fw-bold fs-4 d-none d-md-inline" th:text="${match.team1?.name}"></span>
+                        <span class="fw-bold fs-4 d-md-none" th:text="${match.team1?.countryCode}"></span>
+                        <th:block sec:authorize="hasRole('ADMIN')">
+                            <div class="live-score-inputs" th:attr="data-match-id=${match.id}">
+                            <input type="number" class="form-control text-center fs-4 live-score" style="width:70px"
+                                   th:attr="data-team=1" min="0" max="20"
+                                   th:value="${actual != null ? actual[0] : 0}">
+                            <span class="fs-4">&ndash;</span>
+                            <input type="number" class="form-control text-center fs-4 live-score" style="width:70px"
+                                   th:attr="data-team=2" min="0" max="20"
+                                   th:value="${actual != null ? actual[1] : 0}">
+                            </div>
+                        </th:block>
+                        <th:block sec:authorize="!hasRole('ADMIN')">
+                            <span class="fs-2 fw-bold" th:text="${actual != null ? actual[0] : 0}"></span>
+                            <span class="fs-4 text-muted">&ndash;</span>
+                            <span class="fs-2 fw-bold" th:text="${actual != null ? actual[1] : 0}"></span>
+                        </th:block>
+                        <span class="fw-bold fs-4 d-none d-md-inline" th:text="${match.team2?.name}"></span>
+                        <span class="fw-bold fs-4 d-md-none" th:text="${match.team2?.countryCode}"></span>
+                    </div>
+                    <p class="text-muted small mt-2" th:if="${actual != null && points != null}">
+                        Your points: <span class="badge"
+                            th:classappend="${points >= 3} ? 'bg-success' : (${points >= 2} ? 'bg-warning text-dark' : (${points >= 1} ? 'bg-primary' : 'bg-danger'))"
+                            th:text="${#numbers.formatDecimal(points, 1, 'COMMA', 1, 'POINT')}"></span>
+                    </p>
+                </div>
+                <div class="col-md-8">
+                    <h6 class="text-muted" th:if="${isLive}">As It Stands</h6>
+                    <h6 class="text-muted" th:unless="${isLive}">Predictions</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0" th:if="${aisBoard != null and not aisBoard.isEmpty()}">
+                            <thead>
+                                <tr><th>Player</th><th>Predicted</th><th class="text-end">Pts</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="e : ${aisBoard}"
+                                    th:classappend="${currentUserId != null && e.user.id == currentUserId} ? 'table-active fw-bold' : ''">
+                                    <td>
+                                        <a th:href="@{/predict/user/{id}(id=${e.user.id})}" th:text="${e.user.nickname != null && !e.user.nickname.isBlank() ? e.user.nickname : e.user.firstName}"></a>
+                                        <span th:if="${currentUserId != null && e.user.id == currentUserId}"> <small class="text-muted">(you)</small></span>
+                                    </td>
+                                    <td th:text="${e.prediction.team1Score + ' - ' + e.prediction.team2Score}"></td>
+                                    <td class="text-end">
+                                        <span class="badge"
+                                            th:classappend="${e.ais >= 3} ? 'bg-success' : (${e.ais >= 2} ? 'bg-warning text-dark' : (${e.ais >= 1} ? 'bg-primary' : 'bg-danger'))"
+                                            th:text="${#numbers.formatDecimal(e.ais, 1, 'COMMA', 1, 'POINT')}"></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted text-center py-2" th:if="${aisBoard == null or aisBoard.isEmpty()}">No predictions yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <th:block sec:authorize="hasRole('ADMIN')">
+        <script src="/js/admin-live-score.js"></script>
+    </th:block>
+</th:block>

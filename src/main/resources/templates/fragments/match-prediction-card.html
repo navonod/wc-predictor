@@ -1,10 +1,13 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="match-card(match, score, locked, isSelf, compact, actual, points)">
     <div class="card shadow-sm match-card" th:classappend="${compact != null && compact} ? 'h-100'">
-        <div class="card-header text-muted small py-1">
+        <div class="card-header text-muted small py-1 d-flex justify-content-between align-items-center">
+            <span>
             <span th:text="${match.matchNumber}"></span>
             <span th:if="${match.groupLetter != null}">&middot; Gr <span th:text="${match.groupLetter}"></span></span>
             <span>&middot; </span><span class="local-time" th:attr="data-utc=${match.matchDate}"></span>
             <span th:if="${match.venue != null}">&middot; <span th:text="${match.venue}"></span></span>
+            </span>
+            <a th:if="${locked || actual != null}" th:href="@{/match/{id}(id=${match.id})}" class="btn btn-sm border-0 px-1" title="View predictions">&#x1F465;</a>
         </div>
         <div class="card-body" th:classappend="${compact != null && compact} ? 'py-2' : 'py-3'">
             <!-- Played match: show prediction + actual result -->

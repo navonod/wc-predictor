@@ -45,43 +45,10 @@
                 </select>
         </div>
 
-        <div th:if="${currentMatch != null}" class="card shadow-sm mb-4" id="live-card" th:attr="data-match-id=${currentMatch.id}">
-            <div class="card-header bg-danger text-white py-2">
-                <strong><i class="bi bi-broadcast"></i> LIVE: Match <span th:text="${currentMatch.matchNumber}"></span></strong>
-                <small class="ms-2" th:if="${currentMatch.team1Score != null}" th:text="${currentMatch.team1?.name + ' ' + currentMatch.team1Score + ' - ' + currentMatch.team2Score + ' ' + currentMatch.team2?.name}"></small>
-                <small class="ms-2 text-white-50" th:unless="${currentMatch.team1Score != null}" th:text="${currentMatch.team1?.name + ' vs ' + currentMatch.team2?.name}"></small>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 border-end">
-                        <h6 class="text-muted">Your Prediction</h6>
-                        <th:block th:with="score=${mdScores[currentMatch.id]}, locked=${currentMatchLocked}, actual=${actualScores[currentMatch.id]}, points=${mdPoints[currentMatch.id]}">
-                            <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${currentMatch}, score=${score}, locked=${locked}, isSelf=${true}, compact=${false}, actual=${actual}, points=${points})}"></th:block>
-                        </th:block>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 class="text-muted">As It Stands</h6>
-                        <div class="table-responsive" th:if="${aisBoard != null and !aisBoard.isEmpty()}">
-                            <table class="table table-sm mb-0">
-                                <thead>
-                                    <tr><th>Player</th><th>Predicted</th><th class="text-end">AIS Pts</th><th class="text-end">Total</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr th:each="e : ${aisBoard}">
-                                        <td>
-                                            <a th:href="@{/predict/user/{id}(id=${e.user.id})}" th:text="${e.user.nickname != null && !e.user.nickname.isBlank() ? e.user.nickname : e.user.firstName}"></a>
-                                        </td>
-                                        <td th:text="${e.prediction.team1Score + ' - ' + e.prediction.team2Score}"></td>
-                                        <td class="text-end" th:text="${#numbers.formatDecimal(e.ais, 1, 'COMMA', 1, 'POINT')}"></td>
-                                        <td class="text-end" th:text="${#numbers.formatDecimal(e.total, 1, 'COMMA', 1, 'POINT')}"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p class="text-muted text-center py-2" th:unless="${aisBoard != null and !aisBoard.isEmpty()}">No other predictions yet.</p>
-                    </div>
-                </div>
-            </div>
+        <div th:if="${currentMatch != null}" id="live-card" th:attr="data-match-id=${currentMatch.id}">
+            <th:block th:with="locked=${currentMatchLocked}, actual=${actualScores[currentMatch.id]}, points=${mdPoints[currentMatch.id]}">
+                <th:block th:replace="~{fragments/live-match-card :: live-card(match=${currentMatch}, locked=${locked}, actual=${actual}, points=${points}, aisBoard=${aisBoard}, currentUserId=${currentUserId}, title=${'LIVE: Match ' + currentMatch.matchNumber}, isLive=${currentMatchIsLive})}"></th:block>
+            </th:block>
         </div>
 
         <div th:if="${param.tournamentSaved}" class="alert alert-success alert-dismissible fade show">

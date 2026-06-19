@@ -125,22 +125,15 @@ public class PredictionService {
         var results = new ArrayList<AsItStandEntry>();
         boolean hasScores = match.getTeam1Score() != null && match.getTeam2Score() != null;
         var preds = matchPredictionRepo.findByMatchId(match.getId());
-        log.info("AIS board: match={}, totalPreds={}, currentUser={}, hasScores={}",
-                match.getMatchNumber(), preds.size(), currentUserId, hasScores);
         for (var pred : preds) {
-            UUID uid = pred.getUser().getId();
-            if (uid.equals(currentUserId)) {
-                log.info("  Skipping own prediction for user {}", pred.getUser().getEmailAddress());
-                continue;
-            }
             double ais = hasScores ? scoringService.scoreMatch(pred) : 0;
-            double total = scoringService.getTotalPoints(uid);
+            double total = scoringService.getTotalPoints(pred.getUser().getId());
             results.add(new AsItStandEntry(pred.getUser(), pred, ais, total));
         }
-        log.info("  AIS board results: {} entries", results.size());
         results.sort((a, b) -> Double.compare(b.ais, a.ais));
         return results;
     }
+
 
     public static class AsItStandEntry {
         public final User user;

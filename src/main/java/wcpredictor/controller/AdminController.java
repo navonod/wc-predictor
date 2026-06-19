@@ -2,6 +2,7 @@ package wcpredictor.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -286,5 +287,20 @@ public class AdminController {
             timeService.disableOverride();
         }
         return "redirect:/admin/time";
+    }
+
+    @PostMapping("/api/live-score")
+    @ResponseBody
+    @Transactional
+    public Map<String, Object> setLiveScore(@RequestParam UUID matchId,
+                                             @RequestParam int team1Score,
+                                             @RequestParam int team2Score) {
+        Match match = matchService.findById(matchId).orElse(null);
+        if (match == null) return Map.of("error", "Match not found");
+        match.setTeam1Score(team1Score);
+        match.setTeam2Score(team2Score);
+        matchService.save(match);
+        predictionService.recalculatePointsForMatch(matchId);
+        return Map.of("success", true);
     }
 }
