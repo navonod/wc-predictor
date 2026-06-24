@@ -56,6 +56,7 @@ public class SecurityConfig {
             .rememberMe(remember -> remember
                 .tokenRepository(tokenRepository)
                 .tokenValiditySeconds(14 * 24 * 60 * 60)
+                .useSecureCookie(true)
             );
         return http.build();
     }
