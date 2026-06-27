@@ -62,7 +62,7 @@
         <div th:each="match : ${matches}" th:if="${match.round.name() == selectedRound}">
             <div class="row justify-content-center mb-3">
                 <div class="col-lg-10">
-                    <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf}, compact=${false}, actual=${actual[match.id]}, points=${points[match.id]})}"></th:block>
+                    <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${scores[match.id]}, locked=${matchLocked[match.id]}, isSelf=${isSelf}, compact=${false}, actual=${actual[match.id]}, points=${points[match.id]}, team1Name=${null}, team2Name=${null}, team1Penalties=${null}, team2Penalties=${null})}"></th:block>
                 </div>
             </div>
         </div>

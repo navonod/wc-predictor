@@ -8,6 +8,7 @@ import wcpredictor.entity.*;
 import wcpredictor.repository.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -95,30 +96,70 @@ public class PredictionService {
         return bracketService.getAllKnockoutRounds(getUserMatchPredictionScores(userId), tournamentId);
     }
 
+    public Map<RoundType, List<BracketMatch>> getActualAllKnockoutRounds(UUID tournamentId) {
+        return bracketService.getActualAllKnockoutRounds(tournamentId);
+    }
+
+    public boolean isGroupStageComplete() {
+        return scoringService.isGroupStageComplete();
+    }
+
+    public Set<UUID> getAdvancingTeamIds() {
+        return scoringService.getAdvancingTeamIds();
+    }
+
     public Match findCurrentMatch() {
         var now = timeService.now();
         var all = matchRepository.findAllByOrderByMatchDateAsc();
-        log.info("findCurrentMatch: now={}, totalMatches={}", now, all.size());
         for (var m : all) {
             if (m.getMatchDate() != null) {
-                if (m.getMatchNumber() == 17) {
-                    log.info("  Match 17 check: date={}, minus15={}, plus3h={}",
-                            m.getMatchDate(), m.getMatchDate().minusMinutes(15),
-                            m.getMatchDate().plusHours(3));
-                    log.info("    !now.isBefore(minus15)={}, now.isBefore(plus3h)={}",
-                            !now.isBefore(m.getMatchDate().minusMinutes(15)),
-                            now.isBefore(m.getMatchDate().plusHours(3)));
-                }
                 boolean inWindow = !now.isBefore(m.getMatchDate().minusMinutes(15))
                         && now.isBefore(m.getMatchDate().plusHours(3));
-                if (inWindow) {
-                    log.info("  Found: match {} date={}", m.getMatchNumber(), m.getMatchDate());
-                    return m;
-                }
+                if (inWindow) return m;
             }
         }
-        log.info("  No current match found");
         return null;
+    }
+
+    public List<Match> findAllLiveMatches() {
+        var now = timeService.now();
+        List<Match> live = new ArrayList<>();
+        for (var m : matchRepository.findAllByOrderByMatchDateAsc()) {
+            if (m.getMatchDate() != null) {
+                boolean inWindow = !now.isBefore(m.getMatchDate().minusMinutes(15))
+                        && now.isBefore(m.getMatchDate().plusHours(3));
+                if (inWindow) live.add(m);
+            }
+        }
+        return live;
+    }
+
+    public int getCurrentMatchday() {
+        var now = timeService.now();
+        LocalDateTime[] mdStarts = {
+            LocalDateTime.of(2026, 6, 11, 0, 0),
+            LocalDateTime.of(2026, 6, 18, 0, 0),
+            LocalDateTime.of(2026, 6, 24, 0, 0),
+        };
+        for (int i = 2; i >= 0; i--) {
+            if (!now.isBefore(mdStarts[i])) return i + 1;
+        }
+        return 1;
+    }
+
+    public RoundType getActiveKnockoutRound() {
+        List<RoundType> koRounds = List.of(RoundType.ROUND_OF_32, RoundType.ROUND_OF_16,
+                RoundType.QUARTER_FINAL, RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL);
+        for (int i = koRounds.size() - 1; i >= 0; i--) {
+            RoundType r = koRounds.get(i);
+            var matches = matchRepository.findByRoundOrderByMatchDateAsc(r);
+            if (matches.isEmpty()) continue;
+            boolean allScored = matches.stream().allMatch(m -> m.getTeam1Score() != null);
+            if (allScored) {
+                return i + 1 < koRounds.size() ? koRounds.get(i + 1) : r;
+            }
+        }
+        return RoundType.ROUND_OF_32;
     }
 
     public List<AsItStandEntry> getAsItStandsBoard(Match match, UUID currentUserId) {
@@ -242,6 +283,26 @@ public class PredictionService {
                         m -> new int[]{m.getTeam1Score(), m.getTeam2Score()}));
     }
 
+    public Map<UUID, int[]> getActualPenalties() {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getTeam1PenaltiesScore() != null)
+                .collect(Collectors.toMap(Match::getId,
+                        m -> new int[]{m.getTeam1PenaltiesScore(), m.getTeam2PenaltiesScore()}));
+    }
+
+    public Map<Integer, int[]> getActualScoresByMatchNumber() {
+        return matchRepository.findAll().stream()
+                .filter(m -> m.getTeam1Score() != null)
+                .collect(Collectors.toMap(Match::getMatchNumber,
+                        m -> {
+                            if (m.getTeam1PenaltiesScore() != null) {
+                                return new int[]{m.getTeam1Score(), m.getTeam2Score(),
+                                        m.getTeam1PenaltiesScore(), m.getTeam2PenaltiesScore()};
+                            }
+                            return new int[]{m.getTeam1Score(), m.getTeam2Score()};
+                        }));
+    }
+
     public Map<UUID, Double> getPointsMap(UUID userId) {
         return matchPredictionRepo.findByUserId(userId).stream()
                 .filter(p -> p.getPointsEarned() != null)
@@ -276,6 +337,62 @@ public class PredictionService {
                 r1[4] += s1; r2[4] += s2;
                 r1[5] += s2; r2[5] += s1;
 
+                if (s1 > s2) { r1[1]++; r2[3]++; }
+                else if (s1 < s2) { r1[3]++; r2[1]++; }
+                else { r1[2]++; r2[2]++; }
+            }
+
+            List<GroupStanding> groupStandings = new ArrayList<>();
+            for (Team team : teams) {
+                int[] r = records.get(team.getId());
+                groupStandings.add(new GroupStanding(team, group, r[0], r[1], r[2], r[3], r[4], r[5], 0));
+            }
+            groupStandings.sort(Comparator.naturalOrder());
+            for (int i = 0; i < groupStandings.size(); i++) {
+                groupStandings.set(i, new GroupStanding(
+                        groupStandings.get(i).getTeam(),
+                        group,
+                        groupStandings.get(i).getPlayed(),
+                        groupStandings.get(i).getWon(),
+                        groupStandings.get(i).getDrawn(),
+                        groupStandings.get(i).getLost(),
+                        groupStandings.get(i).getGoalsFor(),
+                        groupStandings.get(i).getGoalsAgainst(),
+                        i + 1));
+            }
+            standings.put(group, groupStandings);
+        }
+        return standings;
+    }
+
+    public Map<Character, List<GroupStanding>> getActualGroupStandings(UUID tournamentId) {
+        Map<UUID, int[]> scores = new HashMap<>();
+        for (Match m : matchRepository.findByTournamentId(tournamentId)) {
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null) {
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+            }
+        }
+        Map<Character, List<GroupStanding>> standings = new LinkedHashMap<>();
+
+        for (char group = 'A'; group <= 'L'; group++) {
+            List<Team> teams = teamService.getTeamsByGroup(tournamentId, String.valueOf(group));
+            if (teams.isEmpty()) continue;
+            List<Match> matches = matchRepository.findByGroupLetterOrderByMatchDateAsc(String.valueOf(group));
+
+            Map<UUID, int[]> records = new LinkedHashMap<>();
+            for (Team team : teams) {
+                records.put(team.getId(), new int[]{0, 0, 0, 0, 0, 0});
+            }
+
+            for (Match match : matches) {
+                int[] sim = scores.get(match.getId());
+                if (sim == null) continue;
+                int s1 = sim[0], s2 = sim[1];
+                UUID t1Id = match.getTeam1().getId(), t2Id = match.getTeam2().getId();
+                int[] r1 = records.get(t1Id), r2 = records.get(t2Id);
+                r1[0]++; r2[0]++;
+                r1[4] += s1; r2[4] += s2;
+                r1[5] += s2; r2[5] += s1;
                 if (s1 > s2) { r1[1]++; r2[3]++; }
                 else if (s1 < s2) { r1[3]++; r2[1]++; }
                 else { r1[2]++; r2[2]++; }

@@ -48,21 +48,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="match : ${entry.value}">
+                        <tr th:each="match : ${entry.value}"
+                                th:with="t1d=${koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][0] : null},
+                                         t2d=${koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][1] : null}">
                             <td th:text="${match.matchNumber}"></td>
                             <td th:text="${match.groupLetter}"></td>
                             <td class="local-time" th:attr="data-utc=${match.matchDate}"></td>
                             <td>
-                                <span th:text="${match.team1?.name}"></span>
-                                <small class="text-muted" th:text="${match.team1?.countryCode}"></small>
+                                <span th:text="${match.team1?.name != null ? match.team1.name : (t1d != null ? t1d : '')}"></span>
+                                <small class="text-muted" th:if="${match.team1?.name != null}" th:text="${match.team1?.countryCode}"></small>
                             </td>
                             <td>
-                                <span th:if="${match.team1Score != null}" th:text="${match.team1Score + ' - ' + match.team2Score}"></span>
+                                <span th:if="${match.team1Score != null}">
+                                    <span th:text="${match.team1Score}"></span>
+                                    <span th:if="${match.team1PenaltiesScore != null}">(<span th:text="${match.team1PenaltiesScore}"></span>p)</span>
+                                    <span> - </span>
+                                    <span th:text="${match.team2Score}"></span>
+                                    <span th:if="${match.team2PenaltiesScore != null}">(<span th:text="${match.team2PenaltiesScore}"></span>p)</span>
+                                </span>
                                 <span th:if="${match.team1Score == null}" class="text-muted">vs</span>
                             </td>
                             <td>
-                                <span th:text="${match.team2?.name}"></span>
-                                <small class="text-muted" th:text="${match.team2?.countryCode}"></small>
+                                <span th:text="${match.team2?.name != null ? match.team2.name : (t2d != null ? t2d : '')}"></span>
+                                <small class="text-muted" th:if="${match.team2?.name != null}" th:text="${match.team2?.countryCode}"></small>
                             </td>
                             <td class="small text-muted" th:text="${match.venue}"></td>
                             <td>
@@ -73,7 +81,10 @@
                                 <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
                                         th:attr="data-bs-target='#resultModal' + ${match.id}">Set Result</button>
 
-                                <div class="modal fade" th:id="'resultModal' + ${match.id}" tabindex="-1">
+                                <div class="modal fade" th:id="'resultModal' + ${match.id}" tabindex="-1"
+                                     th:attr="data-round=${match.round != null ? match.round.name() : ''}"
+                                     th:with="t1n=${match.team1?.name != null ? match.team1.name : (koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][0] : 'Team 1')},
+                                              t2n=${match.team2?.name != null ? match.team2.name : (koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][1] : 'Team 2')}">
                                     <div class="modal-dialog modal-sm">
                                         <div class="modal-content">
                                             <form method="post" th:action="@{/admin/matches/set-result}">
@@ -83,15 +94,26 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-5">
-                                                            <label class="form-label small" th:text="${match.team1?.name}"></label>
-                                                            <input type="number" class="form-control" name="team1Score" th:value="${match.team1Score}" min="0">
-                                                        </div>
-                                                        <div class="col-2 text-center pt-4">-</div>
-                                                        <div class="col-5">
-                                                            <label class="form-label small" th:text="${match.team2?.name}"></label>
-                                                            <input type="number" class="form-control" name="team2Score" th:value="${match.team2Score}" min="0">
+                                                    <div class="d-flex justify-content-between small fw-bold mb-2">
+                                                        <span class="text-start" style="width:42%"><span th:text="${t1n}"></span><span th:if="${t1n == null}">Team 1</span></span>
+                                                        <span class="text-center" style="width:16%"></span>
+                                                        <span class="text-end" style="width:42%"><span th:text="${t2n}"></span><span th:if="${t2n == null}">Team 2</span></span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <input type="number" class="form-control result-score" style="width:45%" name="team1Score"
+                                                               th:value="${match.team1Score}" min="0" placeholder="-">
+                                                        <span class="fs-5">&ndash;</span>
+                                                        <input type="number" class="form-control result-score" style="width:45%" name="team2Score"
+                                                               th:value="${match.team2Score}" min="0" placeholder="-">
+                                                    </div>
+                                                    <div class="penalties-section" style="display:none">
+                                                        <div class="text-center small text-muted mb-1">Penalties</div>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <input type="number" class="form-control form-control-sm" style="width:45%" name="team1PenaltiesScore"
+                                                                   th:value="${match.team1PenaltiesScore}" min="0" placeholder="-">
+                                                            <span class="small">&ndash;</span>
+                                                            <input type="number" class="form-control form-control-sm" style="width:45%" name="team2PenaltiesScore"
+                                                                   th:value="${match.team2PenaltiesScore}" min="0" placeholder="-">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -114,5 +136,30 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/local-time.js"></script>
+    <script>
+        document.querySelectorAll('.modal[id^="resultModal"]').forEach(modal => {
+            const form = modal.querySelector('form');
+            const s1 = form.querySelector('[name="team1Score"]');
+            const s2 = form.querySelector('[name="team2Score"]');
+            const ps = form.querySelector('.penalties-section');
+            const round = modal.dataset.round;
+
+            function isKnockout() {
+                return round && !round.startsWith('GROUP_');
+            }
+            function togglePenalties() {
+                if (isKnockout() && s1.value !== '' && s2.value !== '' && s1.value === s2.value) {
+                    ps.style.display = '';
+                } else {
+                    ps.style.display = 'none';
+                    form.querySelector('[name="team1PenaltiesScore"]').value = '';
+                    form.querySelector('[name="team2PenaltiesScore"]').value = '';
+                }
+            }
+            s1.addEventListener('input', togglePenalties);
+            s2.addEventListener('input', togglePenalties);
+            togglePenalties();
+        });
+    </script>
 </body>
 </html>

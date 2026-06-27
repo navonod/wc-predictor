@@ -1,6 +1,7 @@
 package wcpredictor.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wcpredictor.entity.Setting;
 import wcpredictor.repository.SettingRepository;
 
@@ -41,11 +42,13 @@ public class TimeService {
                 .map(Setting::getValue).orElse(null);
     }
 
+    @Transactional
     public void enableOverride(LocalDateTime time) {
         saveSetting(KEY_ENABLED, "true", "BOOLEAN");
         saveSetting(KEY_VALUE, time.toString(), "STRING");
     }
 
+    @Transactional
     public void disableOverride() {
         settingRepository.findByName(KEY_ENABLED).ifPresent(settingRepository::delete);
         settingRepository.findByName(KEY_VALUE).ifPresent(settingRepository::delete);

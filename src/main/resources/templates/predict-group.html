@@ -52,11 +52,15 @@
                             <strong>Group <span th:text="${entry.key}"></span></strong>
                         </div>
                         <div class="card-body">
-                            <div class="form-check" th:each="team : ${entry.value}">
+                            <div class="form-check" th:each="team : ${entry.value}"
+                                     th:with="predicted=${predictedTeamIds.contains(team.id.toString())},
+                                              advanced=${groupStageComplete && advancingTeamIds.contains(team.id.toString())}">
                                 <input class="form-check-input group-check" type="checkbox" name="teamId"
                                        th:value="${team.id}"
-                                       th:checked="${predictedTeamIds.contains(team.id.toString())}">
+                                       th:checked="${predicted}">
                                 <label class="form-check-label" th:text="${team.name + ' (' + team.countryCode + ')'}"></label>
+                                <span th:if="${groupStageComplete && predicted && advanced}" class="badge bg-warning text-dark ms-1">2 Pts</span>
+                                <span th:if="${groupStageComplete && ((predicted && !advanced) || (!predicted && advanced))}" class="badge bg-danger ms-1">0 Pts</span>
                             </div>
                             <small class="text-muted">Select 2-3 teams to advance</small>
                         </div>

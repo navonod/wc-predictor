@@ -17,19 +17,22 @@ public class ScoringService {
     private final GroupAdvancementPredictionRepository groupAdvancementPredictionRepo;
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
+    private final KnockoutBracketService bracketService;
 
     public ScoringService(MatchRepository matchRepository,
-                          MatchPredictionRepository matchPredictionRepo,
-                          TournamentPredictionRepository tournamentPredictionRepo,
-                          GroupAdvancementPredictionRepository groupAdvancementPredictionRepo,
-                          UserRepository userRepository,
-                          SettingRepository settingRepository) {
+                           MatchPredictionRepository matchPredictionRepo,
+                           TournamentPredictionRepository tournamentPredictionRepo,
+                           GroupAdvancementPredictionRepository groupAdvancementPredictionRepo,
+                           UserRepository userRepository,
+                           SettingRepository settingRepository,
+                           KnockoutBracketService bracketService) {
         this.matchRepository = matchRepository;
         this.matchPredictionRepo = matchPredictionRepo;
         this.tournamentPredictionRepo = tournamentPredictionRepo;
         this.groupAdvancementPredictionRepo = groupAdvancementPredictionRepo;
         this.userRepository = userRepository;
         this.settingRepository = settingRepository;
+        this.bracketService = bracketService;
     }
 
     public double scoreMatch(MatchPrediction prediction) {
@@ -103,13 +106,60 @@ public class ScoringService {
     public double calculateGroupAdvancementPoints(UUID userId) {
         if (!allGroupMatchesCompleted()) return 0;
 
+        Set<UUID> advancingTeamIds = getActualAdvancingTeamIds();
+        if (advancingTeamIds.isEmpty()) return 0;
+
         var predictions = groupAdvancementPredictionRepo.findByUserId(userId);
         double points = 0;
         double perCorrect = getDoubleSetting("points_group_qualifier");
         for (var pred : predictions) {
-            points += perCorrect;
+            if (advancingTeamIds.contains(pred.getTeam().getId())) {
+                points += perCorrect;
+            }
         }
         return points;
+    }
+
+    private Set<UUID> getActualAdvancingTeamIds() {
+        Map<UUID, int[]> scores = getGroupMatchActualScores();
+        UUID tournamentId = matchRepository.findAll().stream()
+                .findFirst().map(Match::getTournament).map(Tournament::getId).orElse(null);
+        if (tournamentId == null) return Set.of();
+
+        Map<Character, List<GroupStanding>> standings = bracketService.computeStandings(scores, tournamentId);
+        Set<UUID> ids = new HashSet<>();
+        for (var entry : standings.entrySet()) {
+            List<GroupStanding> gs = entry.getValue();
+            if (gs.size() >= 2) {
+                ids.add(gs.get(0).getTeam().getId());
+                ids.add(gs.get(1).getTeam().getId());
+            }
+        }
+
+        List<GroupStanding> bestThirds = bracketService.getBestThirdPlacedTeams(standings);
+        for (int i = 0; i < Math.min(8, bestThirds.size()); i++) {
+            ids.add(bestThirds.get(i).getTeam().getId());
+        }
+        return ids;
+    }
+
+    private Map<UUID, int[]> getGroupMatchActualScores() {
+        Map<UUID, int[]> scores = new HashMap<>();
+        for (Match m : matchRepository.findAll()) {
+            if (m.getGroupLetter() != null && m.getGroupLetter().length() == 1
+                    && m.getTeam1Score() != null && m.getTeam2Score() != null) {
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+            }
+        }
+        return scores;
+    }
+
+    public boolean isGroupStageComplete() {
+        return allGroupMatchesCompleted();
+    }
+
+    public Set<UUID> getAdvancingTeamIds() {
+        return getActualAdvancingTeamIds();
     }
 
     private boolean allGroupMatchesCompleted() {

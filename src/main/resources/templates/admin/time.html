@@ -38,24 +38,19 @@
             <div class="card-header bg-dark text-white"><h5 class="mb-0">Override Time</h5></div>
             <div class="card-body">
                 <form method="post" th:action="@{/admin/time/toggle}" class="row g-3 align-items-end">
+                    <input type="hidden" name="enable" value="true">
                     <div class="col-md-4">
                         <label class="form-label">Dummy Time (UTC)</label>
                         <input type="datetime-local" class="form-control" name="overrideTime"
-                               th:value="${overrideValue}" step="1">
+                               th:value="${overrideValue}" step="1" required>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-check form-switch mt-4">
-                            <input class="form-check-input" type="checkbox" name="enable" value="true"
-                                   id="enableSwitch" th:checked="${overrideEnabled}">
-                            <label class="form-check-label" for="enableSwitch" th:text="${overrideEnabled} ? 'Enabled' : 'Disabled'"></label>
-                        </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">Set Dummy Time</button>
                     </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">Apply</button>
-                    </div>
-                    <div class="col-md-2" th:if="${overrideEnabled}">
-                        <a href="/admin/time/toggle" class="btn btn-outline-danger w-100">Disable</a>
-                    </div>
+                </form>
+                <form method="post" th:action="@{/admin/time/toggle}" class="mt-2" th:if="${overrideEnabled}">
+                    <input type="hidden" name="enable" value="false">
+                    <button type="submit" class="btn btn-outline-danger">Disable Dummy Time</button>
                 </form>
             </div>
         </div>

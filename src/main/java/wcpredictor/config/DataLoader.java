@@ -366,6 +366,7 @@ public class DataLoader {
 
                 if (tournamentRepo.findAll().stream().anyMatch(t -> t.getName().equals(tournamentName))) {
                     fixGroupMatchPairings(resource, matchRepo, teamRepo);
+                    assignKnockoutTournamentIds(matchRepo, tournamentRepo, tournamentName);
                     log.info("Tournament '{}' already exists, fixed group match pairings.", tournamentName);
                     continue;
                 }
@@ -503,6 +504,23 @@ public class DataLoader {
             }
         }
         return map;
+    }
+
+    private void assignKnockoutTournamentIds(MatchRepository matchRepo,
+                                               TournamentRepository tournamentRepo,
+                                               String tournamentName) {
+        Tournament t = tournamentRepo.findAll().stream()
+                .filter(tr -> tr.getName().equals(tournamentName)).findFirst().orElse(null);
+        if (t == null) return;
+        int fixed = 0;
+        for (Match m : matchRepo.findAll()) {
+            if (m.getMatchNumber() >= 73 && m.getTournament() == null) {
+                m.setTournament(t);
+                matchRepo.save(m);
+                fixed++;
+            }
+        }
+        if (fixed > 0) log.info("Assigned tournament_id to {} knockout matches", fixed);
     }
 
     private void fixGroupMatchPairings(org.springframework.core.io.Resource resource,

@@ -40,6 +40,9 @@ public class Match {
     private Integer team1Score;
     private Integer team2Score;
 
+    private Integer team1PenaltiesScore;
+    private Integer team2PenaltiesScore;
+
     @Column(nullable = false)
     private boolean predictionsLocked = false;
 

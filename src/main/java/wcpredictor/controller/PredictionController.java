@@ -8,6 +8,7 @@ import wcpredictor.entity.*;
 import wcpredictor.service.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,7 @@ public class PredictionController {
         model.addAttribute("hasTournamentPrediction", predictionService.getUserTournamentPrediction(target.getId()).isPresent());
         model.addAttribute("hasGroupPredictions", predictionService.hasGroupPredictions(target.getId()));
         model.addAttribute("standings", predictionService.getUserGroupStandings(target.getId(), tournamentId));
+        model.addAttribute("actualStandings", predictionService.getActualGroupStandings(tournamentId));
         model.addAttribute("tournamentStarted", tournamentStarted());
 
         var now = timeService.now();
@@ -88,24 +90,80 @@ public class PredictionController {
         }
         model.addAttribute("mdScores", userScores);
         model.addAttribute("actualScores", predictionService.getActualScores());
+        model.addAttribute("actualPenalties", predictionService.getActualPenalties());
+        model.addAttribute("koScoreMap", predictionService.getActualScoresByMatchNumber());
         model.addAttribute("mdPoints", predictionService.getPointsMap(target.getId()));
-        model.addAttribute("bracket", predictionService.getKnockoutBracket(target.getId(), tournamentId));
-        model.addAttribute("allRounds", predictionService.getAllKnockoutRounds(target.getId(), tournamentId));
+        model.addAttribute("allRounds", predictionService.getActualAllKnockoutRounds(tournamentId));
+
+        Map<Integer, String[]> koDescs = new LinkedHashMap<>();
+        var actualKOBracket = predictionService.getActualAllKnockoutRounds(tournamentId);
+        for (var entry : actualKOBracket.entrySet()) {
+            for (BracketMatch bm : entry.getValue()) {
+                koDescs.put(bm.getMatchNumber(), new String[]{bm.getTeam1Name(), bm.getTeam2Name()});
+            }
+        }
+        for (Match m : matchService.getAllMatchesGroupedByRound().values().stream()
+                .flatMap(List::stream).toList()) {
+            if (m.getMatchNumber() >= 73) {
+                String[] descs = koDescs.get(m.getMatchNumber());
+                if (descs == null) descs = new String[]{"?", "?"};
+                if (m.getTeam1() != null) descs[0] = m.getTeam1().getName();
+                if (m.getTeam2() != null) descs[1] = m.getTeam2().getName();
+                koDescs.put(m.getMatchNumber(), descs);
+            }
+        }
+        model.addAttribute("koDescs", koDescs);
+
+        List<RoundType> koRounds = List.of(RoundType.ROUND_OF_32, RoundType.ROUND_OF_16,
+                RoundType.QUARTER_FINAL, RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL);
+        List<Map<String, Object>> koPredictionRounds = new ArrayList<>();
+        for (RoundType r : koRounds) {
+            var matches = matchService.getMatchesByRound(r);
+            if (matches.isEmpty()) continue;
+            Map<UUID, Boolean> locked = new HashMap<>();
+            boolean allLocked = true;
+            for (Match m : matches) {
+                boolean lock = m.isLocked(now);
+                locked.put(m.getId(), lock);
+                if (!lock) allLocked = false;
+            }
+            Map<String, Object> rd = new LinkedHashMap<>();
+            rd.put("round", r);
+            rd.put("description", r.getDescription());
+            rd.put("matches", matches);
+            rd.put("locked", locked);
+            rd.put("allLocked", allLocked);
+            koPredictionRounds.add(rd);
+        }
+        model.addAttribute("koPredictionRounds", koPredictionRounds);
         model.addAttribute("allUsers", userService.findAll().stream()
                 .filter(u -> u.getConfirmed() != null && u.getConfirmed())
                 .filter(u -> u.getNickname() != null && !u.getNickname().isBlank())
                 .toList());
-        var currentMatch = predictionService.findCurrentMatch();
-        model.addAttribute("currentMatch", currentMatch);
-        model.addAttribute("currentMatchLocked", currentMatch != null && currentMatch.isLocked(timeService.now()));
-        model.addAttribute("currentMatchIsLive", currentMatch != null
-                && currentMatch.getMatchDate() != null
-                && timeService.now().isBefore(currentMatch.getMatchDate().plusHours(3)));
-        if (currentMatch != null) {
-            model.addAttribute("aisBoard", predictionService.getAsItStandsBoard(currentMatch, target.getId()));
+
+        var liveMatches = predictionService.findAllLiveMatches();
+        model.addAttribute("liveMatches", liveMatches);
+
+        int activeMatchday = predictionService.getCurrentMatchday();
+        model.addAttribute("activeMatchday", activeMatchday);
+        model.addAttribute("activeKoRound", predictionService.getActiveKnockoutRound());
+
+        boolean groupStageDone = predictionService.isGroupStageComplete();
+        boolean tournamentStarted = tournamentStarted();
+        model.addAttribute("sectionOrder", determineSectionOrder(now, tournamentStarted, groupStageDone));
+
+        if (!liveMatches.isEmpty()) {
+            var firstLive = liveMatches.get(0);
+            model.addAttribute("aisBoard", predictionService.getAsItStandsBoard(firstLive, target.getId()));
             model.addAttribute("currentUserId", target.getId());
         }
         return "predict";
+    }
+
+    private int determineSectionOrder(LocalDateTime now, boolean tournamentStarted, boolean groupStageDone) {
+        if (!tournamentStarted) return 1;
+        if (!groupStageDone) return 2;
+        return 3;
     }
 
     @GetMapping("/predict/tournament")
@@ -199,6 +257,11 @@ public class PredictionController {
         model.addAttribute("predictedTeamIds", predictions.stream()
                 .map(p -> p.getTeam().getId().toString()).collect(Collectors.toSet()));
         model.addAttribute("tournamentStarted", tournamentStarted());
+        model.addAttribute("groupStageComplete", predictionService.isGroupStageComplete());
+        if (predictionService.isGroupStageComplete()) {
+            model.addAttribute("advancingTeamIds", predictionService.getAdvancingTeamIds().stream()
+                    .map(UUID::toString).collect(Collectors.toSet()));
+        }
         model.addAttribute("target", target);
         model.addAttribute("isSelf", isSelf);
         return "predict-group";

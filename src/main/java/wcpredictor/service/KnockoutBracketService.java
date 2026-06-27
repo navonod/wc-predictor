@@ -3,9 +3,11 @@ package wcpredictor.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wcpredictor.entity.Match;
 import wcpredictor.entity.RoundType;
 import wcpredictor.entity.Team;
+import wcpredictor.entity.Tournament;
 import wcpredictor.entity.TournamentTeam;
 import wcpredictor.repository.MatchRepository;
 import wcpredictor.repository.TournamentTeamRepository;
@@ -96,7 +98,7 @@ public class KnockoutBracketService {
         return bracket;
     }
 
-    private Map<Character, List<GroupStanding>> computeStandings(Map<UUID, int[]> scores, UUID tournamentId) {
+    Map<Character, List<GroupStanding>> computeStandings(Map<UUID, int[]> scores, UUID tournamentId) {
         Map<Character, List<GroupStanding>> standings = new LinkedHashMap<>();
 
         for (char group = 'A'; group <= 'L'; group++) {
@@ -142,7 +144,7 @@ public class KnockoutBracketService {
         return standings;
     }
 
-    private List<GroupStanding> getBestThirdPlacedTeams(Map<Character, List<GroupStanding>> standings) {
+    List<GroupStanding> getBestThirdPlacedTeams(Map<Character, List<GroupStanding>> standings) {
         List<GroupStanding> thirdPlaced = new ArrayList<>();
         for (var entry : standings.entrySet()) {
             List<GroupStanding> group = entry.getValue();
@@ -176,7 +178,7 @@ public class KnockoutBracketService {
         Map<Integer, String> winnerCache = new HashMap<>();
         for (BracketMatch m : r32) {
             int[] s = scores.get(matchIdByNumber(m.getMatchNumber()));
-            if (s != null) winnerCache.put(m.getMatchNumber(), s[0] > s[1] ? m.getTeam1Name() : m.getTeam2Name());
+            if (s != null) winnerCache.put(m.getMatchNumber(), team1Wins(s) ? m.getTeam1Name() : m.getTeam2Name());
         }
 
         List<Match> knockoutTemplates = matchRepository.findByRoundInOrderByMatchDateAsc(
@@ -184,7 +186,7 @@ public class KnockoutBracketService {
                         RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL));
 
         Object[][] sources = {
-            {74,77,90},{73,75,89},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
+            {74,77,89},{73,75,90},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
             {89,90,97},{93,94,98},{91,92,99},{95,96,100},
             {97,98,101},{99,100,102},
             {101,102,103,true},{101,102,104,false}
@@ -205,7 +207,7 @@ public class KnockoutBracketService {
 
             int[] destScores = scores.get(tmpl.getId());
             if (destScores != null) {
-                winnerCache.put(dest, destScores[0] > destScores[1] ? t1Name : t2Name);
+                winnerCache.put(dest, team1Wins(destScores) ? t1Name : t2Name);
             }
         }
         return rounds;
@@ -221,7 +223,7 @@ public class KnockoutBracketService {
             if (match != null) {
                 int[] s = scores.get(match.getId());
                 if (s != null) {
-                    boolean t1Won = s[0] > s[1];
+                    boolean t1Won = team1Wins(s);
                     String loser = t1Won ? match.getTeam2() != null ? match.getTeam2().getName() : null
                                          : match.getTeam1() != null ? match.getTeam1().getName() : null;
                     if (loser != null) return loser;
@@ -231,9 +233,328 @@ public class KnockoutBracketService {
         return "Winner Match " + matchNum;
     }
 
+    @Transactional
+    public Map<RoundType, List<BracketMatch>> getActualAllKnockoutRounds(UUID tournamentId) {
+        Map<UUID, int[]> actualScores = new HashMap<>();
+        Map<Integer, UUID> numToId = new HashMap<>();
+        for (Match m : matchRepository.findByTournamentId(tournamentId)) {
+            numToId.put(m.getMatchNumber(), m.getId());
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null) {
+                if (m.getTeam1PenaltiesScore() != null) {
+                    actualScores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score(),
+                            m.getTeam1PenaltiesScore(), m.getTeam2PenaltiesScore()});
+                } else {
+                    actualScores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+                }
+            }
+        }
+
+        Map<Character, List<GroupStanding>> standings =
+                computeStandings(actualScores, tournamentId);
+        Map<Character, Team> winners = new HashMap<>();
+        Map<Character, Team> runnersUp = new HashMap<>();
+        for (var entry : standings.entrySet()) {
+            char g = entry.getKey();
+            List<GroupStanding> gs = entry.getValue();
+            if (gs.size() >= 1) winners.put(g, gs.get(0).getTeam());
+            if (gs.size() >= 2) runnersUp.put(g, gs.get(1).getTeam());
+        }
+
+        List<String> thirdDesc = combinationService.getPossibleThirdPlaceDescriptions();
+        List<Character> fpGroups = combinationService.getFirstPlaceGroups();
+        Map<Integer, String[]> descByMatch = buildDescByMatch(thirdDesc, fpGroups);
+
+        List<BracketMatch> r32 = new ArrayList<>();
+        List<Match> r32Templates = matchRepository.findByRoundOrderByMatchDateAsc(RoundType.ROUND_OF_32);
+        for (Match tmpl : r32Templates) {
+            int num = tmpl.getMatchNumber();
+            String[] descs = descByMatch.getOrDefault(num, new String[]{"?", "?"});
+            String t1Name = resolveByDesc(num, descs[0], winners, runnersUp, standings,
+                    fpGroups, thirdDesc, actualScores);
+            String t2Name = resolveByDesc(num, descs[1], winners, runnersUp, standings,
+                    fpGroups, thirdDesc, actualScores);
+            r32.add(new BracketMatch(num, tmpl.getMatchDate(),
+                    tmpl.getVenue() != null ? tmpl.getVenue() : "", t1Name, t2Name));
+        }
+
+        return buildLaterRounds(r32, actualScores, numToId, tournamentId);
+    }
+
+    private Map<Integer, String[]> buildDescByMatch(List<String> thirdDesc, List<Character> fpGroups) {
+        Map<Integer, String[]> map = new LinkedHashMap<>();
+        map.put(73, new String[]{"2A", "2B"});
+        map.put(78, new String[]{"2E", "2I"});
+        map.put(83, new String[]{"2K", "2L"});
+        map.put(88, new String[]{"2D", "2G"});
+        map.put(75, new String[]{"1F", "2C"});
+        map.put(76, new String[]{"1C", "2F"});
+        map.put(84, new String[]{"1H", "2J"});
+        map.put(86, new String[]{"1J", "2H"});
+        int[][] winnerThirdSlots = {
+            {74, 3}, {77, 5}, {79, 0}, {80, 7}, {81, 2}, {82, 4}, {85, 1}, {87, 6}
+        };
+        for (int[] slot : winnerThirdSlots) {
+            int matchNum = slot[0];
+            int fpIdx = slot[1];
+            char group = fpGroups.get(fpIdx);
+            map.put(matchNum, new String[]{"1" + group, "3" + thirdDesc.get(fpIdx)});
+        }
+        return map;
+    }
+
+    private String resolveByDesc(int matchNum, String desc,
+                                  Map<Character, Team> winners, Map<Character, Team> runnersUp,
+                                  Map<Character, List<GroupStanding>> standings,
+                                  List<Character> fpGroups, List<String> thirdDesc,
+                                  Map<UUID, int[]> scores) {
+        if (desc.startsWith("1")) {
+            char g = desc.charAt(1);
+            Team t = winners.get(g);
+            return teamOrDesc(t, desc);
+        }
+        if (desc.startsWith("2")) {
+            char g = desc.charAt(1);
+            Team t = runnersUp.get(g);
+            return teamOrDesc(t, desc);
+        }
+        if (desc.startsWith("3")) {
+            for (int i = 0; i < fpGroups.size(); i++) {
+                if (desc.substring(1).equals(thirdDesc.get(i))) {
+                    return thirdPlaceOrActual(fpGroups.get(i), standings, scores,
+                            thirdDesc.get(i), desc);
+                }
+            }
+        }
+        return desc;
+    }
+
+    private String teamOrDesc(Team team, String desc) {
+        return team != null ? team.getName() : desc;
+    }
+
+    private String thirdPlaceOrActual(char winnerGroup, Map<Character, List<GroupStanding>> standings,
+                                        Map<UUID, int[]> scores, String thirdSlotGroup, String desc) {
+        List<GroupStanding> bestThirds = getBestThirdPlacedTeams(standings);
+        Set<Character> thirdGroups = bestThirds.stream().map(GroupStanding::getGroupLetter).collect(Collectors.toSet());
+        if (thirdGroups.size() < 8) return desc;
+        var opt = combinationService.findOption(thirdGroups);
+        if (opt.isEmpty()) return desc;
+        List<Character> slotGroups = combinationService.getThirdPlaceGroupsForOption(opt.get());
+        int slotIdx = combinationService.getFirstPlaceGroups().indexOf(winnerGroup);
+        if (slotIdx < 0 || slotIdx >= slotGroups.size()) return desc;
+        char actualGroup = slotGroups.get(slotIdx);
+        for (GroupStanding gs : bestThirds) {
+            if (gs.getGroupLetter() == actualGroup) return gs.getTeam().getName();
+        }
+        return desc;
+    }
+
+    private BracketMatch ruVsRu(int num, LocalDateTime date, String venue,
+                                  Map<Character, Team> runnersUp, char g1, char g2) {
+        Team t1 = runnersUp.get(g1), t2 = runnersUp.get(g2);
+        return new BracketMatch(num, date, venue,
+                teamOrDesc(t1, "2" + g1), teamOrDesc(t2, "2" + g2));
+    }
+
+    private BracketMatch wnVsRu(int num, LocalDateTime date, String venue,
+                                  Map<Character, Team> winners, char wg,
+                                  Map<Character, Team> runnersUp, char rg) {
+        Team t1 = winners.get(wg), t2 = runnersUp.get(rg);
+        return new BracketMatch(num, date, venue,
+                teamOrDesc(t1, "1" + wg), teamOrDesc(t2, "2" + rg));
+    }
+
+    private Map<RoundType, List<BracketMatch>> buildLaterRounds(List<BracketMatch> r32,
+                                                                  Map<UUID, int[]> scores, Map<Integer, UUID> numToId,
+                                                                  UUID tournamentId) {
+        Map<RoundType, List<BracketMatch>> rounds = new LinkedHashMap<>();
+        rounds.put(RoundType.ROUND_OF_32, r32);
+
+        Map<Integer, String> winnerCache = new HashMap<>();
+        for (BracketMatch m : r32) {
+            UUID mid = numToId.get(m.getMatchNumber());
+            int[] s = scores.get(mid);
+            if (s != null) {
+                winnerCache.put(m.getMatchNumber(), team1Wins(s) ? m.getTeam1Name() : m.getTeam2Name());
+            }
+        }
+
+        List<Match> knockoutTemplates = matchRepository.findByRoundInOrderByMatchDateAsc(
+                List.of(RoundType.ROUND_OF_16, RoundType.QUARTER_FINAL,
+                        RoundType.SEMI_FINAL, RoundType.THIRD_PLACE, RoundType.FINAL));
+
+        Object[][] sources = {
+            {74,77,89},{73,75,90},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
+            {89,90,97},{93,94,98},{91,92,99},{95,96,100},
+            {97,98,101},{99,100,102},
+            {101,102,103,true},{101,102,104,false}
+        };
+        int si = 0;
+
+        for (Match tmpl : knockoutTemplates) {
+            Object[] src = sources[si++];
+            int src1 = (int) src[0], src2 = (int) src[1], dest = (int) src[2];
+            boolean isThirdPlace = src.length > 3 && (boolean) src[3];
+
+            String t1Name = winnerOrDesc(src1, winnerCache, scores, isThirdPlace, false);
+            String t2Name = winnerOrDesc(src2, winnerCache, scores, isThirdPlace, true);
+
+            BracketMatch bm = new BracketMatch(dest, tmpl.getMatchDate(),
+                    tmpl.getVenue() != null ? tmpl.getVenue() : "", t1Name, t2Name);
+            rounds.computeIfAbsent(tmpl.getRound(), k -> new ArrayList<>()).add(bm);
+
+            int[] destScores = scores.get(tmpl.getId());
+            if (destScores != null) {
+                winnerCache.put(dest, team1Wins(destScores) ? t1Name : t2Name);
+            }
+        }
+        return rounds;
+    }
+
+    private String winnerOrDesc(int matchNum, Map<Integer, String> cache,
+                                 Map<UUID, int[]> scores, boolean isLoser, boolean isSecond) {
+        String cached = cache.get(matchNum);
+        if (cached != null) {
+            if (!isLoser) return cached;
+            var match = matchRepository.findAll().stream()
+                    .filter(m -> m.getMatchNumber() == matchNum).findFirst().orElse(null);
+            if (match != null) {
+                int[] s = scores.get(match.getId());
+                if (s != null) {
+                    boolean t1Won = team1Wins(s);
+                    String loser = t1Won ? (match.getTeam2() != null ? match.getTeam2().getName() : null)
+                                         : (match.getTeam1() != null ? match.getTeam1().getName() : null);
+                    if (loser != null) return loser;
+                }
+            }
+        }
+        String prefix = isLoser ? "L" : "W";
+        return prefix + matchNum;
+    }
+
+    private boolean team1Wins(int[] scores) {
+        if (scores[0] != scores[1]) return scores[0] > scores[1];
+        if (scores.length >= 4) return scores[2] > scores[3];
+        return false;
+    }
+
     private UUID matchIdByNumber(int matchNum) {
         return matchRepository.findAll().stream()
                 .filter(m -> m.getMatchNumber() == matchNum).findFirst()
                 .map(Match::getId).orElse(null);
+    }
+
+    @Transactional
+    public void propagateWinner(UUID matchId) {
+        Match match = matchRepository.findById(matchId).orElse(null);
+        if (match == null || match.getMatchNumber() < 73) return;
+        if (match.getTeam1Score() == null || match.getTeam2Score() == null) return;
+
+        int[] scores;
+        if (match.getTeam1PenaltiesScore() != null) {
+            scores = new int[]{match.getTeam1Score(), match.getTeam2Score(),
+                    match.getTeam1PenaltiesScore(), match.getTeam2PenaltiesScore()};
+        } else {
+            scores = new int[]{match.getTeam1Score(), match.getTeam2Score()};
+        }
+        boolean t1Win = team1Wins(scores);
+
+        Team winner;
+        if (match.getTeam1() != null && match.getTeam2() != null) {
+            winner = t1Win ? match.getTeam1() : match.getTeam2();
+        } else {
+            Team t1 = resolveBracketTeam(match.getMatchNumber(), true);
+            Team t2 = resolveBracketTeam(match.getMatchNumber(), false);
+            winner = t1Win ? t1 : t2;
+        }
+        if (winner == null) return;
+
+        int[][] sources = {
+            {74,77,89},{73,75,90},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
+            {89,90,97},{93,94,98},{91,92,99},{95,96,100},
+            {97,98,101},{99,100,102},
+            {101,102,103,1},{101,102,104,0}
+        };
+
+        int matchNum = match.getMatchNumber();
+        for (int[] src : sources) {
+            boolean isLoser = src.length > 3 && src[3] == 1;
+            int destNum = src[2];
+            if (src[0] == matchNum) {
+                Team t = isLoser ? getLoser(match, winner) : winner;
+                if (t != null) setTeam(destNum, true, t);
+            }
+            if (src[1] == matchNum) {
+                Team t = isLoser ? getLoser(match, winner) : winner;
+                if (t != null) setTeam(destNum, false, t);
+            }
+        }
+    }
+
+    private Team resolveBracketTeam(int matchNum, boolean isTeam1) {
+        UUID tournamentId = tournamentTeamRepo.findAll().stream()
+                .findFirst().map(TournamentTeam::getTournament).map(Tournament::getId).orElse(null);
+        if (tournamentId == null) return null;
+
+        Map<UUID, int[]> scores = new HashMap<>();
+        for (Match m : matchRepository.findByTournamentId(tournamentId)) {
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null) {
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+            }
+        }
+        Map<Character, List<GroupStanding>> standings = computeStandings(scores, tournamentId);
+
+        List<String> thirdDesc = combinationService.getPossibleThirdPlaceDescriptions();
+        List<Character> fpGroups = combinationService.getFirstPlaceGroups();
+        Map<Integer, String[]> descByMatch = buildDescByMatch(thirdDesc, fpGroups);
+
+        String[] descs = descByMatch.get(matchNum);
+        if (descs == null) return null;
+        String desc = isTeam1 ? descs[0] : descs[1];
+
+        char g;
+        if (desc.startsWith("1") || desc.startsWith("2")) {
+            g = desc.charAt(1);
+            List<GroupStanding> gs = standings.get(g);
+            if (gs == null) return null;
+            if (desc.startsWith("1") && gs.size() >= 1) return gs.get(0).getTeam();
+            if (desc.startsWith("2") && gs.size() >= 2) return gs.get(1).getTeam();
+        }
+        if (desc.startsWith("3")) {
+            for (int i = 0; i < fpGroups.size(); i++) {
+                if (desc.substring(1).equals(thirdDesc.get(i))) {
+                    char winnerGroup = fpGroups.get(i);
+                    var bestThirds = getBestThirdPlacedTeams(standings);
+                    var opt = combinationService.findOption(
+                            bestThirds.stream().map(GroupStanding::getGroupLetter).collect(Collectors.toSet()));
+                    if (opt.isPresent()) {
+                        var slotGroups = combinationService.getThirdPlaceGroupsForOption(opt.get());
+                        if (i < slotGroups.size()) {
+                            char actualGroup = slotGroups.get(i);
+                            for (GroupStanding gs : bestThirds) {
+                                if (gs.getGroupLetter() == actualGroup) return gs.getTeam();
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Team getLoser(Match match, Team winner) {
+        if (match.getTeam1() != null && !match.getTeam1().getId().equals(winner.getId())) return match.getTeam1();
+        if (match.getTeam2() != null && !match.getTeam2().getId().equals(winner.getId())) return match.getTeam2();
+        return null;
+    }
+
+    private void setTeam(int destNum, boolean isTeam1, Team team) {
+        Match dest = matchRepository.findAll().stream()
+                .filter(m -> m.getMatchNumber() == destNum).findFirst().orElse(null);
+        if (dest == null || team == null) return;
+        if (isTeam1) dest.setTeam1(team);
+        else dest.setTeam2(team);
+        matchRepository.save(dest);
     }
 }

@@ -6,7 +6,7 @@
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
             <div class="col" th:each="match : ${matches}">
                 <th:block th:with="score=${scores[match.id]}, locked=${matchLocked[match.id]}, act=${actual[match.id]}, pts=${points[match.id]}">
-                    <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${act}, points=${pts})}"></th:block>
+                    <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${act}, points=${pts}, team1Name=${null}, team2Name=${null}, team1Penalties=${null}, team2Penalties=${null})}"></th:block>
                 </th:block>
             </div>
         </div>

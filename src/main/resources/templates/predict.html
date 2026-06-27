@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Predictions - WC Predictor 2026</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/css/app.css">
@@ -23,6 +24,9 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item" th:if="${dummyTimeActive}">
+                        <span class="nav-link text-danger">&#x23F0; DUMMY TIME</span>
+                    </li>
                     <li class="nav-item"><span class="nav-link" sec:authentication="name"></span></li>
                     <li class="nav-item">
                         <form th:action="@{/logout}" method="post" class="d-inline">
@@ -45,11 +49,13 @@
                 </select>
         </div>
 
-        <div th:if="${currentMatch != null}" id="live-card" th:attr="data-match-id=${currentMatch.id}">
-            <th:block th:with="locked=${currentMatchLocked}, actual=${actualScores[currentMatch.id]}, points=${mdPoints[currentMatch.id]}">
-                <th:block th:replace="~{fragments/live-match-card :: live-card(match=${currentMatch}, locked=${locked}, actual=${actual}, points=${points}, aisBoard=${aisBoard}, currentUserId=${currentUserId}, title=${'LIVE: Match ' + currentMatch.matchNumber}, isLive=${currentMatchIsLive})}"></th:block>
-            </th:block>
-        </div>
+        <th:block th:each="lm : ${liveMatches}">
+            <div th:if="${lm != null}" th:attr="data-match-id=${lm.id}">
+                <th:block th:with="locked=${currentMatchLocked}, actual=${actualScores[lm.id]}, points=${mdPoints[lm.id]}, isLive=${true}">
+                    <th:block th:replace="~{fragments/live-match-card :: live-card(match=${lm}, locked=${locked}, actual=${actual}, points=${points}, aisBoard=${aisBoard}, currentUserId=${currentUserId}, title=${'LIVE: Match ' + lm.matchNumber}, isLive=${isLive})}"></th:block>
+                </th:block>
+            </div>
+        </th:block>
 
         <div th:if="${param.tournamentSaved}" class="alert alert-success alert-dismissible fade show">
             Tournament predictions saved!
@@ -60,7 +66,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div class="row g-4 mb-4">
+        <div class="row g-4 mb-4" data-section="1">
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-dark text-white">
@@ -95,9 +101,23 @@
             </div>
         </div>
 
-        <h4 class="mb-3">Groups</h4>
+        <div data-section="2">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="mb-0" id="groups-header">Groups (Predicted)</h4>
+            <small><a href="#" id="groups-toggle" onclick="toggleGroups(); return false;">Switch to actuals</a></small>
+        </div>
+        <script>
+            let groupsShowingPredicted = true;
+            function toggleGroups() {
+                groupsShowingPredicted = !groupsShowingPredicted;
+                document.getElementById('groups-predicted').style.display = groupsShowingPredicted ? '' : 'none';
+                document.getElementById('groups-actual').style.display = groupsShowingPredicted ? 'none' : '';
+                document.getElementById('groups-header').textContent = groupsShowingPredicted ? 'Groups (Predicted)' : 'Groups (Actuals)';
+                document.getElementById('groups-toggle').textContent = groupsShowingPredicted ? 'Switch to actuals' : 'Switch to predicted';
+            }
+        </script>
 
-        <div class="row">
+        <div id="groups-predicted" class="row">
             <div class="col-md-3 mb-4" th:each="entry : ${standings}">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white py-1 px-2 d-flex justify-content-between align-items-center">
@@ -124,66 +144,157 @@
             </div>
         </div>
 
-        <h4 class="mb-1"><i class="bi bi-collection"></i> Stages</h4>
-        <ul class="nav nav-tabs mb-3 justify-content-end" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#md1-panel" type="button" role="tab">Matchday 1</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#md2-panel" type="button" role="tab">Matchday 2</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#md3-panel" type="button" role="tab">Matchday 3</button>
-                </li>
-            </ul>
-
-        <div class="tab-content mb-5">
-            <div class="tab-pane fade show active" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
+        <div id="groups-actual" class="row" style="display:none">
+            <div class="col-md-3 mb-4" th:each="entry : ${actualStandings}">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-success text-white py-1 px-2">
+                        <small><strong>Group <span th:text="${entry.key}"></span></strong></small>
                     </div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}">
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
-                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points})}"></th:block>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0 small">
+                            <thead>
+                                <tr><th>#</th><th>Team</th><th>Pts</th><th>GD</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="gs : ${entry.value}">
+                                    <td th:text="${gs.position}"></td>
+                                    <td th:text="${gs.team.name}"></td>
+                                    <td th:text="${gs.points}"></td>
+                                    <td><span th:if="${gs.goalDiff > 0}">+</span><span th:text="${gs.goalDiff}"></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div th:if="${allRounds != null and !allRounds.isEmpty()}">
-            <div th:each="entry : ${allRounds}" th:if="${entry.value != null and !entry.value.isEmpty()}" class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white py-2">
-                    <strong th:text="${entry.key.description}"></strong>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr><th>#</th><th>Date</th><th>Venue</th><th>Home</th><th></th><th>Away</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="m : ${entry.value}">
-                                <td th:text="${m.matchNumber}"></td>
-                                <td class="local-time" th:attr="data-utc=${m.matchDate}"></td>
-                                <td class="small" th:text="${m.venue}"></td>
-                                <td th:text="${m.team1Name}"></td>
-                                <td class="text-center">vs</td>
-                                <td th:text="${m.team2Name}"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+        <h4 class="mb-1"><i class="bi bi-collection"></i> Stages</h4>
+        <ul class="nav nav-tabs mb-3 justify-content-end" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" th:classappend="${activeMatchday == 1 ? 'active' : ''}" data-bs-toggle="tab" data-bs-target="#md1-panel" type="button" role="tab">Matchday 1</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" th:classappend="${activeMatchday == 2 ? 'active' : ''}" data-bs-toggle="tab" data-bs-target="#md2-panel" type="button" role="tab">Matchday 2</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" th:classappend="${activeMatchday == 3 ? 'active' : ''}" data-bs-toggle="tab" data-bs-target="#md3-panel" type="button" role="tab">Matchday 3</button>
+                </li>
+            </ul>
+
+        <div class="tab-content mb-5">
+            <div class="tab-pane fade" th:classappend="${activeMatchday == 1 ? 'show active' : ''}" id="md1-panel" th:with="roundMatches=${matches1}, roundLocked=${locked1}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points}, team1Name=${null}, team2Name=${null}, team1Penalties=${null}, team2Penalties=${null})}"></th:block>
+                    </div>
                 </div>
             </div>
+            <div class="tab-pane fade" th:classappend="${activeMatchday == 2 ? 'show active' : ''}" id="md2-panel" th:with="roundMatches=${matches2}, roundLocked=${locked2}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points}, team1Name=${null}, team2Name=${null}, team1Penalties=${null}, team2Penalties=${null})}"></th:block>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" th:classappend="${activeMatchday == 3 ? 'show active' : ''}" id="md3-panel" th:with="roundMatches=${matches3}, roundLocked=${locked3}">
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    <div class="col" th:each="match : ${roundMatches}" th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}">
+                        <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points}, team1Name=${null}, team2Name=${null}, team1Penalties=${null}, team2Penalties=${null})}"></th:block>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div data-section="3">
+        <div th:if="${allRounds != null and !allRounds.isEmpty()}">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="mb-0" id="knockout-header"><i class="bi bi-trophy"></i> Knockout (Predictions)</h4>
+                <small><a href="#" id="knockout-toggle" onclick="toggleKnockout(); return false;">Switch to list</a></small>
+            </div>
+
+            <!-- List view -->
+            <div id="knockout-list" style="display:none">
+                <ul class="nav nav-tabs mb-3 justify-content-end" role="tablist">
+                    <li class="nav-item" role="presentation" th:each="entry,iterStat : ${allRounds}">
+                        <button class="nav-link" th:classappend="${iterStat.first ? 'active' : ''}"
+                                th:attr="data-bs-toggle='tab',data-bs-target='#ko-' + ${entry.key.name()}"
+                                type="button" role="tab"
+                                th:text="${entry.key.description}"></button>
+                    </li>
+                </ul>
+                <div class="tab-content mb-4">
+                    <div th:each="entry,iterStat : ${allRounds}"
+                         class="tab-pane fade"
+                         th:classappend="${iterStat.first ? 'show active' : ''}"
+                         th:id="'ko-' + ${entry.key.name()}">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-success text-white py-2">
+                                <strong th:text="${entry.key.description}"></strong>
+                            </div>
+                            <div class="card-body p-0">
+                                <table class="table table-sm mb-0">
+                                    <thead>
+                                        <tr><th>#</th><th>Date</th><th>Venue</th><th class="text-end">Home</th><th></th><th></th><th></th><th>Away</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="m : ${entry.value}"
+                                            th:with="sc=${koScoreMap != null && koScoreMap.containsKey(m.matchNumber) ? koScoreMap[m.matchNumber] : null}">
+                                            <td th:text="${m.matchNumber}"></td>
+                                            <td class="local-time" th:attr="data-utc=${m.matchDate}"></td>
+                                            <td class="small" th:text="${m.venue}"></td>
+                                            <td class="text-end fw-bold" th:text="${m.team1Name}"></td>
+                                            <td class="text-center fw-bold">
+                                                <span th:text="${sc != null ? sc[0] : ''}"></span>
+                                                <small th:if="${sc != null && sc.length > 2}">(<span th:text="${sc[2]}"></span>p)</small>
+                                            </td>
+                                            <td class="text-center">vs</td>
+                                            <td class="text-center fw-bold">
+                                                <span th:text="${sc != null ? sc[1] : ''}"></span>
+                                                <small th:if="${sc != null && sc.length > 2}">(<span th:text="${sc[3]}"></span>p)</small>
+                                            </td>
+                                            <td class="fw-bold" th:text="${m.team2Name}"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictions view -->
+            <div id="knockout-predictions">
+                <ul class="nav nav-tabs mb-3 justify-content-end" role="tablist">
+                    <li class="nav-item" role="presentation" th:each="rd,iterStat : ${koPredictionRounds}">
+                        <button class="nav-link" th:classappend="${iterStat.first ? 'active' : ''}"
+                                th:attr="data-bs-toggle='tab',data-bs-target='#kop-' + ${rd.round.name()}"
+                                type="button" role="tab"
+                                th:text="${rd.description}"></button>
+                    </li>
+                </ul>
+                <div class="tab-content mb-4">
+                    <div th:each="rd,iterStat : ${koPredictionRounds}"
+                         class="tab-pane fade"
+                         th:classappend="${iterStat.first ? 'show active' : ''}"
+                         th:id="'kop-' + ${rd.round.name()}"
+                         th:with="roundMatches=${rd.matches}, roundLocked=${rd.locked}, allLocked=${rd.allLocked}">
+                        <div th:if="${allLocked}" class="alert alert-warning text-center py-2 small mb-2">
+                            <i class="bi bi-lock-fill"></i> Predictions closed for this round
+                        </div>
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                            <div class="col" th:each="match : ${roundMatches}" th:if="${match != null}"
+                                 th:with="score=${mdScores[match.id]}, locked=${roundLocked[match.id]}, actual=${actualScores[match.id]}, points=${mdPoints[match.id]}, ap=${actualPenalties[match.id]},
+                                          t1d=${koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][0] : null},
+                                          t2d=${koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][1] : null}">
+                                <th:block th:replace="~{fragments/match-prediction-card :: match-card(match=${match}, score=${score}, locked=${locked}, isSelf=${isSelf}, compact=${true}, actual=${actual}, points=${points}, team1Name=${t1d}, team2Name=${t2d}, team1Penalties=${ap != null ? ap[0] : null}, team2Penalties=${ap != null ? ap[1] : null})}"></th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
     </div>
 
@@ -191,24 +302,53 @@
     <script src="/js/local-time.js"></script>
     <script src="/js/match-predictions.js"></script>
     <script>
-        const liveCard = document.getElementById('live-card');
-        if (liveCard) {
-            const matchId = liveCard.getAttribute('data-match-id');
-            let lastScores = null;
-            setInterval(async () => {
-                try {
-                    const resp = await fetch('/api/live-scores/' + matchId);
-                    const data = await resp.json();
-                    if (data.team1Score != null && data.team2Score != null) {
-                        const current = data.team1Score + '-' + data.team2Score;
-                        if (lastScores !== null && current !== lastScores) {
-                            location.reload();
-                        }
-                        lastScores = current;
-                    }
-                } catch(e) {}
-            }, 30000);
+        let knockoutShowingList = false;
+        function toggleKnockout() {
+            knockoutShowingList = !knockoutShowingList;
+            document.getElementById('knockout-list').style.display = knockoutShowingList ? '' : 'none';
+            document.getElementById('knockout-predictions').style.display = knockoutShowingList ? 'none' : '';
+            document.getElementById('knockout-header').innerHTML = knockoutShowingList ? '<i class="bi bi-trophy"></i> Knockout (List)' : '<i class="bi bi-trophy"></i> Knockout (Predictions)';
+            document.getElementById('knockout-toggle').textContent = knockoutShowingList ? 'Switch to predictions' : 'Switch to list';
         }
+    </script>
+    <script th:inline="javascript">
+        (function() {
+            const sectionOrder = /*[[${sectionOrder}]]*/ 1;
+            const activeKoRound = /*[[${activeKoRound}]]*/ 'ROUND_OF_32';
+            console.log('sectionOrder=' + sectionOrder + ' activeKoRound=' + activeKoRound);
+
+            const container = document.querySelectorAll('.container')[1]; // main content, not navbar
+            const sections = container.querySelectorAll('[data-section]');
+            console.log('sections found:', sections.length);
+            if (sections.length) {
+                const ordered = [];
+                ordered.push(sectionOrder);
+                for (let i = sectionOrder - 1; i >= 1; i--) ordered.push(i);
+                for (let i = sectionOrder + 1; i <= 3; i++) ordered.push(i);
+                console.log('reorder plan:', ordered);
+                ordered.forEach(n => {
+                    const el = container.querySelector('[data-section="' + n + '"]');
+                    console.log('  moving section', n, el ? 'found' : 'NOT FOUND');
+                    if (el) container.appendChild(el);
+                });
+            } else {
+                console.log('NO data-section elements found in .container');
+            }
+
+            document.querySelectorAll('.tab-pane[id^="ko-"]').forEach(p => p.classList.remove('show','active'));
+            document.querySelectorAll('.nav-link[data-bs-target^="#ko-"]').forEach(b => b.classList.remove('active'));
+            const koPane = document.getElementById('ko-' + activeKoRound);
+            if (koPane) { koPane.classList.add('show','active'); }
+            const koBtn = document.querySelector('[data-bs-target="#ko-' + activeKoRound + '"]');
+            if (koBtn) koBtn.classList.add('active');
+
+            document.querySelectorAll('.tab-pane[id^="kop-"]').forEach(p => p.classList.remove('show','active'));
+            document.querySelectorAll('.nav-link[data-bs-target^="#kop-"]').forEach(b => b.classList.remove('active'));
+            const kopPane = document.getElementById('kop-' + activeKoRound);
+            if (kopPane) { kopPane.classList.add('show','active'); }
+            const kopBtn = document.querySelector('[data-bs-target="#kop-' + activeKoRound + '"]');
+            if (kopBtn) kopBtn.classList.add('active');
+        })();
     </script>
 </body>
 </html>

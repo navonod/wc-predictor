@@ -26,11 +26,13 @@ public class AdminController {
     private final TournamentService tournamentService;
     private final PredictionService predictionService;
     private final TimeService timeService;
+    private final KnockoutBracketService bracketService;
 
     public AdminController(TeamService teamService, MatchService matchService,
                             SettingService settingService, PoolService poolService,
                             UserService userService, TournamentService tournamentService,
-                            PredictionService predictionService, TimeService timeService) {
+                            PredictionService predictionService, TimeService timeService,
+                            KnockoutBracketService bracketService) {
         this.teamService = teamService;
         this.matchService = matchService;
         this.settingService = settingService;
@@ -39,6 +41,7 @@ public class AdminController {
         this.tournamentService = tournamentService;
         this.predictionService = predictionService;
         this.timeService = timeService;
+        this.bracketService = bracketService;
     }
 
     @GetMapping
@@ -78,18 +81,37 @@ public class AdminController {
         model.addAttribute("matchesByRound", matchService.getAllMatchesGroupedByRound());
         model.addAttribute("teams", teamService.getAllTeams());
         model.addAttribute("roundTypes", matchService.getAllRoundTypes());
+
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        Map<Integer, String[]> koDescs = new LinkedHashMap<>();
+        if (tournamentId != null) {
+            var actualKOBracket = predictionService.getActualAllKnockoutRounds(tournamentId);
+            for (var entry : actualKOBracket.entrySet()) {
+                for (BracketMatch bm : entry.getValue()) {
+                    koDescs.put(bm.getMatchNumber(), new String[]{bm.getTeam1Name(), bm.getTeam2Name()});
+                }
+            }
+        }
+        model.addAttribute("koDescs", koDescs);
+
         return "admin/matches";
     }
 
     @PostMapping("/matches/set-result")
     public String setMatchResult(@RequestParam UUID matchId,
                                   @RequestParam Integer team1Score,
-                                  @RequestParam Integer team2Score) {
+                                  @RequestParam Integer team2Score,
+                                  @RequestParam(required = false) Integer team1PenaltiesScore,
+                                  @RequestParam(required = false) Integer team2PenaltiesScore) {
         Match match = matchService.findById(matchId).orElseThrow();
         match.setTeam1Score(team1Score);
         match.setTeam2Score(team2Score);
+        match.setTeam1PenaltiesScore(team1PenaltiesScore);
+        match.setTeam2PenaltiesScore(team2PenaltiesScore);
         matchService.save(match);
         predictionService.recalculatePointsForMatch(matchId);
+        bracketService.propagateWinner(matchId);
         return "redirect:/admin/matches";
     }
 
@@ -279,10 +301,12 @@ public class AdminController {
     }
 
     @PostMapping("/time/toggle")
+    @Transactional
     public String toggleTime(@RequestParam(required = false) String overrideTime,
                               @RequestParam(required = false, defaultValue = "false") boolean enable) {
         if (enable && overrideTime != null && !overrideTime.isBlank()) {
-            timeService.enableOverride(LocalDateTime.parse(overrideTime));
+            String normalized = overrideTime.contains("T") ? overrideTime : overrideTime.replace(" ", "T");
+            timeService.enableOverride(LocalDateTime.parse(normalized));
         } else {
             timeService.disableOverride();
         }

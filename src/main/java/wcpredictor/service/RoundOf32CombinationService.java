@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RoundOf32CombinationService {
@@ -90,5 +91,22 @@ public class RoundOf32CombinationService {
     public List<Character> getThirdPlaceGroupsForOption(int option) {
         return Collections.unmodifiableList(
                 optionToThirdPlaceGroups.getOrDefault(option, List.of()));
+    }
+
+    public List<List<Character>> getAllThirdPlaceGroupOptions() {
+        return optionToThirdPlaceGroups.values().stream().distinct().toList();
+    }
+
+    public List<String> getPossibleThirdPlaceDescriptions() {
+        List<String> result = new ArrayList<>(8);
+        for (int slot = 0; slot < 8; slot++) {
+            Set<Character> possible = new TreeSet<>();
+            for (List<Character> groups : optionToThirdPlaceGroups.values()) {
+                if (slot < groups.size()) possible.add(groups.get(slot));
+            }
+            result.add(possible.stream().map(String::valueOf)
+                    .sorted().collect(Collectors.joining("/")));
+        }
+        return result;
     }
 }

@@ -25,9 +25,10 @@ document.querySelectorAll('.save-btn, .save-btn-sm').forEach(btn => {
     if (!s1 || !s2) return;
 
     function checkDirty() {
+        const hasBoth = s1.value !== '' && s2.value !== '';
         const d1 = s1.value !== s1.getAttribute('data-initial');
         const d2 = s2.value !== s2.getAttribute('data-initial');
-        btn.disabled = !(d1 || d2);
+        btn.disabled = !(hasBoth && (d1 || d2));
     }
     s1.addEventListener('input', checkDirty);
     s2.addEventListener('input', checkDirty);
