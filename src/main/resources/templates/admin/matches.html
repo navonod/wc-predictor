@@ -37,6 +37,10 @@
                         <input type="hidden" name="roundType" th:value="${entry.key.name()}">
                         <button type="submit" class="btn btn-outline-success btn-sm">Unlock All</button>
                     </form>
+                    <form method="post" th:action="@{/admin/matches/propagate-round}" class="d-inline">
+                        <input type="hidden" name="roundType" th:value="${entry.key.name()}">
+                        <button type="submit" class="btn btn-outline-info btn-sm">Propagate</button>
+                    </form>
                 </div>
             </div>
 

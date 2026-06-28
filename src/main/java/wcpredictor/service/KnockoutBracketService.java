@@ -557,4 +557,144 @@ public class KnockoutBracketService {
         else dest.setTeam2(team);
         matchRepository.save(dest);
     }
+
+    @Transactional
+    public void propagateMatch(UUID matchId) {
+        Match match = matchRepository.findById(matchId).orElse(null);
+        if (match == null) return;
+        if (match.getTeam1Score() == null || match.getTeam2Score() == null) return;
+        RoundType round = match.getRound();
+        if (round == RoundType.GROUP_MD3) {
+            propagateGroupStage();
+        } else if (match.getMatchNumber() >= 73) {
+            propagateKnockoutWinner(match);
+        }
+    }
+
+    @Transactional
+    public void propagateRound(RoundType round) {
+        if (round == RoundType.GROUP_MD3) {
+            propagateGroupStage();
+        } else {
+            var matches = matchRepository.findByRoundOrderByMatchDateAsc(round);
+            for (Match m : matches) {
+                if (m.getTeam1Score() != null && m.getTeam2Score() != null
+                        && m.getMatchNumber() >= 73) {
+                    propagateKnockoutWinner(m);
+                }
+            }
+        }
+    }
+
+    private void propagateGroupStage() {
+        UUID tournamentId = matchRepository.findAll().stream()
+                .findFirst().map(Match::getTournament).map(Tournament::getId).orElse(null);
+        if (tournamentId == null) return;
+        Map<UUID, int[]> scores = new HashMap<>();
+        for (Match m : matchRepository.findByRoundOrderByMatchDateAsc(RoundType.GROUP_MD1)) {
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null)
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+        }
+        for (Match m : matchRepository.findByRoundOrderByMatchDateAsc(RoundType.GROUP_MD2)) {
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null)
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+        }
+        for (Match m : matchRepository.findByRoundOrderByMatchDateAsc(RoundType.GROUP_MD3)) {
+            if (m.getTeam1Score() != null && m.getTeam2Score() != null)
+                scores.put(m.getId(), new int[]{m.getTeam1Score(), m.getTeam2Score()});
+        }
+        Map<Character, List<GroupStanding>> standings = computeStandings(scores, tournamentId);
+        List<String> thirdDesc = combinationService.getPossibleThirdPlaceDescriptions();
+        List<Character> fpGroups = combinationService.getFirstPlaceGroups();
+        Map<Integer, String[]> descByMatch = buildDescByMatch(thirdDesc, fpGroups);
+        Map<Character, Team> winners = new HashMap<>();
+        Map<Character, Team> runnersUp = new HashMap<>();
+        for (var entry : standings.entrySet()) {
+            char g = entry.getKey(); var gs = entry.getValue();
+            if (gs.size() >= 1) winners.put(g, gs.get(0).getTeam());
+            if (gs.size() >= 2) runnersUp.put(g, gs.get(1).getTeam());
+        }
+        List<GroupStanding> bestThirds = getBestThirdPlacedTeams(standings);
+        Set<Character> thirdGroups = bestThirds.stream().map(GroupStanding::getGroupLetter).collect(Collectors.toSet());
+        var opt = combinationService.findOption(thirdGroups);
+        List<Character> slotGroups = opt.isPresent()
+                ? combinationService.getThirdPlaceGroupsForOption(opt.get()) : List.of();
+        for (var entry : descByMatch.entrySet()) {
+            int matchNum = entry.getKey();
+            String[] descs = entry.getValue();
+            Match dest = matchRepository.findAll().stream()
+                    .filter(m -> m.getMatchNumber() == matchNum).findFirst().orElse(null);
+            if (dest == null) continue;
+            Team t1 = resolveTeamFromDesc(descs[0], winners, runnersUp, standings, fpGroups,
+                    thirdDesc, bestThirds, slotGroups);
+            Team t2 = resolveTeamFromDesc(descs[1], winners, runnersUp, standings, fpGroups,
+                    thirdDesc, bestThirds, slotGroups);
+            if (t1 != null) dest.setTeam1(t1);
+            if (t2 != null) dest.setTeam2(t2);
+            if (t1 != null || t2 != null) matchRepository.save(dest);
+        }
+    }
+
+    private Team resolveTeamFromDesc(String desc, Map<Character, Team> winners,
+                                       Map<Character, Team> runnersUp,
+                                       Map<Character, List<GroupStanding>> standings,
+                                       List<Character> fpGroups, List<String> thirdDesc,
+                                       List<GroupStanding> bestThirds, List<Character> slotGroups) {
+        if (desc == null) return null;
+        if (desc.startsWith("1")) { char g = desc.charAt(1); return winners.get(g); }
+        if (desc.startsWith("2")) { char g = desc.charAt(1); return runnersUp.get(g); }
+        if (desc.startsWith("3")) {
+            for (int i = 0; i < fpGroups.size(); i++) {
+                if (desc.substring(1).equals(thirdDesc.get(i))) {
+                    if (i < slotGroups.size()) {
+                        char actualGroup = slotGroups.get(i);
+                        for (GroupStanding gs : bestThirds) {
+                            if (gs.getGroupLetter() == actualGroup) return gs.getTeam();
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void propagateKnockoutWinner(Match match) {
+        int[] scores;
+        if (match.getTeam1PenaltiesScore() != null) {
+            scores = new int[]{match.getTeam1Score(), match.getTeam2Score(),
+                    match.getTeam1PenaltiesScore(), match.getTeam2PenaltiesScore()};
+        } else {
+            scores = new int[]{match.getTeam1Score(), match.getTeam2Score()};
+        }
+        boolean t1Win = team1Wins(scores);
+        Team winner;
+        if (match.getTeam1() != null && match.getTeam2() != null) {
+            winner = t1Win ? match.getTeam1() : match.getTeam2();
+        } else {
+            Team t1 = resolveBracketTeam(match.getMatchNumber(), true);
+            Team t2 = resolveBracketTeam(match.getMatchNumber(), false);
+            winner = t1Win ? t1 : t2;
+        }
+        if (winner == null) return;
+        int[][] sources = {
+            {74,77,89},{73,75,90},{76,78,91},{79,80,92},{83,84,93},{81,82,94},{86,88,95},{85,87,96},
+            {89,90,97},{93,94,98},{91,92,99},{95,96,100},
+            {97,98,101},{99,100,102},
+            {101,102,103,1},{101,102,104,0}
+        };
+        int matchNum = match.getMatchNumber();
+        for (int[] src : sources) {
+            boolean isLoser = src.length > 3 && src[3] == 1;
+            int destNum = src[2];
+            if (src[0] == matchNum) {
+                Team t = isLoser ? getLoser(match, winner) : winner;
+                if (t != null) setTeam(destNum, true, t);
+            }
+            if (src[1] == matchNum) {
+                Team t = isLoser ? getLoser(match, winner) : winner;
+                if (t != null) setTeam(destNum, false, t);
+            }
+        }
+    }
 }

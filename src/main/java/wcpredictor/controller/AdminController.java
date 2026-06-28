@@ -111,7 +111,7 @@ public class AdminController {
         match.setTeam2PenaltiesScore(team2PenaltiesScore);
         matchService.save(match);
         predictionService.recalculatePointsForMatch(matchId);
-        bracketService.propagateWinner(matchId);
+        bracketService.propagateMatch(matchId);
         return "redirect:/admin/matches";
     }
 
@@ -124,6 +124,12 @@ public class AdminController {
     @PostMapping("/matches/unlock-round")
     public String unlockRound(@RequestParam String roundType) {
         matchService.unlockRound(RoundType.valueOf(roundType));
+        return "redirect:/admin/matches";
+    }
+
+    @PostMapping("/matches/propagate-round")
+    public String propagateRound(@RequestParam String roundType) {
+        bracketService.propagateRound(RoundType.valueOf(roundType));
         return "redirect:/admin/matches";
     }
 
