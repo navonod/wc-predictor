@@ -101,5 +101,5 @@ Match No,Date/Time in UTC,Estimated Time,Team 1,Team 2,Venue,Local Time,Timezone
 100,2026-07-12 00:00,TRUE,Winner Match 95,Winner Match 96,Kansas City Stadium,2026-07-11 19:00,UTC-5
 101,2026-07-15 23:00,TRUE,Winner Match 97,Winner Match 98,Dallas Stadium,2026-07-15 18:00,UTC-5
 102,2026-07-16 00:00,TRUE,Winner Match 99,Winner Match 100,Atlanta Stadium,2026-07-15 20:00,UTC-4
-103,2026-07-18 20:00,TRUE,Loser Match 101,Loser Match 102,Miami Stadium,2026-07-18 16:00,UTC-4
+103,2026-07-18 21:00,TRUE,Loser Match 101,Loser Match 102,Miami Stadium,2026-07-18 17:00,UTC-4
 104,2026-07-19 19:00,FALSE,Winner Match 101,Winner Match 102,New York New Jersey Stadium,2026-07-19 15:00,UTC-4

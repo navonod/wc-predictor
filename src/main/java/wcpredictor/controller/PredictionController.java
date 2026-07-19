@@ -195,6 +195,39 @@ public class PredictionController {
         return "predict-tournament";
     }
 
+    @GetMapping("/predict/user/{userId}/tournament/score")
+    public String scoreTournamentPredictions(@PathVariable UUID userId, Model model, Principal principal) {
+        User viewer = getCurrentUser(principal);
+        if (!viewer.isAdmin()) return "redirect:/predict";
+        User target = userService.findById(userId).orElse(null);
+        if (target == null) return "redirect:/predict";
+
+        var existing = predictionService.getUserTournamentPrediction(target.getId());
+        model.addAttribute("prediction", existing.orElse(null));
+        model.addAttribute("target", target);
+
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        model.addAttribute("actual", predictionService.getOrCreateTournamentActual(tournamentId));
+        model.addAttribute("settings", predictionService.getAwardSettings());
+
+        return "tournament-score";
+    }
+
+    @PostMapping("/predict/user/{userId}/tournament/score")
+    public String saveTournamentScore(@PathVariable UUID userId,
+                                       @RequestParam(required = false, defaultValue = "0") double boots,
+                                       @RequestParam(required = false, defaultValue = "0") double ball,
+                                       @RequestParam(required = false, defaultValue = "0") double glove,
+                                       @RequestParam(required = false, defaultValue = "0") double young) {
+        predictionService.saveManualAwardPoints(userId, boots + ball + glove + young,
+                boots > 0, ball > 0, glove > 0, young > 0);
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        predictionService.recalculateAllAwardPoints(tournamentId);
+        return "redirect:/predict/user/" + userId + "/tournament/score";
+    }
+
     @PostMapping("/predict/tournament")
     public String saveTournamentPredictions(@RequestParam(required = false) String goldenBoot,
                                              @RequestParam(required = false) String goldenBall,
@@ -221,7 +254,8 @@ public class PredictionController {
         tp.setFinalist1(finalist1 != null ? teamService.findById(finalist1).orElse(null) : null);
         tp.setFinalist2(finalist2 != null ? teamService.findById(finalist2).orElse(null) : null);
         tp.setChampion(champion != null ? teamService.findById(champion).orElse(null) : null);
-        predictionService.saveTournamentPrediction(user, tp);
+        predictionService.saveTournamentPrediction(user, tp,
+                tournamentService.findAll().stream().findFirst().map(Tournament::getId).orElse(null));
         return "redirect:/predict?tournamentSaved";
     }
 

@@ -26,6 +26,7 @@ public class PredictionService {
     private final TimeService timeService;
     private final ScoringService scoringService;
     private final KnockoutBracketService bracketService;
+    private final TournamentActualRepository tournamentActualRepo;
 
     public PredictionService(MatchPredictionRepository matchPredictionRepo,
                              TournamentPredictionRepository tournamentPredictionRepo,
@@ -35,7 +36,8 @@ public class PredictionService {
                              TeamService teamService,
                              TimeService timeService,
                              ScoringService scoringService,
-                             KnockoutBracketService bracketService) {
+                             KnockoutBracketService bracketService,
+                             TournamentActualRepository tournamentActualRepo) {
         this.matchPredictionRepo = matchPredictionRepo;
         this.tournamentPredictionRepo = tournamentPredictionRepo;
         this.groupAdvancementPredictionRepo = groupAdvancementPredictionRepo;
@@ -45,6 +47,123 @@ public class PredictionService {
         this.timeService = timeService;
         this.scoringService = scoringService;
         this.bracketService = bracketService;
+        this.tournamentActualRepo = tournamentActualRepo;
+    }
+
+    public TournamentActual getOrCreateTournamentActual(UUID tournamentId) {
+        if (tournamentId == null) return null;
+        var actual = tournamentActualRepo.findByTournamentId(tournamentId)
+                .orElse(new TournamentActual());
+
+        Match finalMatch = matchRepository.findAll().stream()
+                .filter(m -> m.getMatchNumber() == 104).findFirst().orElse(null);
+        if (finalMatch != null) {
+            if (actual.getFinalist1() == null) actual.setFinalist1(finalMatch.getTeam1());
+            if (actual.getFinalist2() == null) actual.setFinalist2(finalMatch.getTeam2());
+            if (finalMatch.getTeam1Score() != null && finalMatch.getTeam2Score() != null) {
+                Team winner = finalMatch.getTeam1Score() > finalMatch.getTeam2Score()
+                        ? finalMatch.getTeam1() : finalMatch.getTeam2();
+                if (actual.getChampionTeam() == null) actual.setChampionTeam(winner);
+            }
+        }
+        return actual;
+    }
+
+    @Transactional
+    public void saveTournamentActualFromSettings(UUID tournamentId, Map<String, String> params) {
+        Tournament t = new Tournament();
+        t.setId(tournamentId);
+        var actual = tournamentActualRepo.findByTournamentId(tournamentId)
+                .orElse(new TournamentActual());
+        actual.setTournament(t);
+
+        String gb = params.get("actual_golden_boot");
+        String gball = params.get("actual_golden_ball");
+        String gglove = params.get("actual_golden_glove");
+        String yp = params.get("actual_young_player");
+        String fp = params.get("actual_fair_play");
+        String ent = params.get("actual_entertaining");
+
+        if (gb != null) actual.setGoldenBoot(gb.isBlank() ? null : gb.trim());
+        if (gball != null) actual.setGoldenBall(gball.isBlank() ? null : gball.trim());
+        if (gglove != null) actual.setGoldenGlove(gglove.isBlank() ? null : gglove.trim());
+        if (yp != null) actual.setYoungPlayer(yp.isBlank() ? null : yp.trim());
+        if (fp != null && !fp.isBlank()) actual.setFairPlay(getTeamRef(UUID.fromString(fp)));
+        else actual.setFairPlay(null);
+        if (ent != null && !ent.isBlank()) actual.setMostEntertaining(getTeamRef(UUID.fromString(ent)));
+        else actual.setMostEntertaining(null);
+
+        tournamentActualRepo.save(actual);
+    }
+
+    private Team getTeamRef(UUID id) {
+        Team t = new Team();
+        t.setId(id);
+        return t;
+    }
+
+    @Transactional
+    public void recalculateAllAwardPoints(UUID tournamentId) {
+        var actual = tournamentActualRepo.findByTournamentId(tournamentId).orElse(null);
+        if (actual == null) return;
+
+        double championPts = getSettingDouble("points_champion", 20);
+        double finalistPts = getSettingDouble("points_finalist", 10);
+        double fairPlayPts = getSettingDouble("points_fair_play", 3);
+        double entertainingPts = getSettingDouble("points_entertaining", 3);
+
+        for (var pred : tournamentPredictionRepo.findAll()) {
+            double pts = 0;
+            if (actual.getChampionTeam() != null && pred.getChampion() != null
+                    && actual.getChampionTeam().getId().equals(pred.getChampion().getId())) pts += championPts;
+            if (actual.getFinalist1() != null && pred.getFinalist1() != null
+                    && (actual.getFinalist1().getId().equals(pred.getFinalist1().getId())
+                        || (actual.getFinalist2() != null && actual.getFinalist2().getId().equals(pred.getFinalist1().getId()))))
+                pts += finalistPts;
+            if (actual.getFinalist2() != null && pred.getFinalist2() != null
+                    && (actual.getFinalist2().getId().equals(pred.getFinalist2().getId())
+                        || (actual.getFinalist1() != null && actual.getFinalist1().getId().equals(pred.getFinalist2().getId()))))
+                pts += finalistPts;
+            if (actual.getFairPlay() != null && pred.getFairPlay() != null
+                    && actual.getFairPlay().getName() != null
+                    && actual.getFairPlay().getName().equalsIgnoreCase(pred.getFairPlay())) pts += fairPlayPts;
+            if (actual.getMostEntertaining() != null && pred.getMostEntertaining() != null
+                    && actual.getMostEntertaining().getName() != null
+                    && actual.getMostEntertaining().getName().equalsIgnoreCase(pred.getMostEntertaining())) pts += entertainingPts;
+            pred.setAwardPoints(pts);
+            tournamentPredictionRepo.save(pred);
+        }
+    }
+
+    public Map<String, Double> getAwardSettings() {
+        Map<String, Double> map = new LinkedHashMap<>();
+        map.put("golden_boot", getSettingDouble("points_golden_boot", 5));
+        map.put("golden_ball", getSettingDouble("points_golden_ball", 5));
+        map.put("golden_glove", getSettingDouble("points_golden_glove", 5));
+        map.put("young_player", getSettingDouble("points_young_player", 5));
+        map.put("fair_play", getSettingDouble("points_fair_play", 3));
+        map.put("entertaining", getSettingDouble("points_entertaining", 3));
+        map.put("finalist", getSettingDouble("points_finalist", 10));
+        map.put("champion", getSettingDouble("points_champion", 20));
+        return map;
+    }
+
+    @Transactional
+    public void saveManualAwardPoints(UUID userId, double points,
+                                        boolean boot, boolean ball, boolean glove, boolean young) {
+        tournamentPredictionRepo.findByUserId(userId).ifPresent(pred -> {
+            pred.setManualAwardPoints(points);
+            pred.setGoldenBootCorrect(boot);
+            pred.setGoldenBallCorrect(ball);
+            pred.setGoldenGloveCorrect(glove);
+            pred.setYoungPlayerCorrect(young);
+            tournamentPredictionRepo.save(pred);
+        });
+    }
+
+    private double getSettingDouble(String name, double def) {
+        return settingRepository.findByName(name)
+                .map(s -> Double.parseDouble(s.getValue())).orElse(def);
     }
 
     @Transactional
@@ -191,10 +310,15 @@ public class PredictionService {
     }
 
     @Transactional
-    public void saveTournamentPrediction(User user, TournamentPrediction prediction) {
+    public void saveTournamentPrediction(User user, TournamentPrediction prediction, UUID tournamentId) {
         TournamentPrediction existing = tournamentPredictionRepo.findByUserId(user.getId())
                 .orElse(new TournamentPrediction());
         existing.setUser(user);
+        if (tournamentId != null) {
+            Tournament t = new Tournament();
+            t.setId(tournamentId);
+            existing.setTournament(t);
+        }
         existing.setGoldenBoot(prediction.getGoldenBoot());
         existing.setGoldenBall(prediction.getGoldenBall());
         existing.setGoldenGlove(prediction.getGoldenGlove());

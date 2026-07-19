@@ -57,7 +57,9 @@
                                          t2d=${koDescs != null && koDescs.containsKey(match.matchNumber) ? koDescs[match.matchNumber][1] : null}">
                             <td th:text="${match.matchNumber}"></td>
                             <td th:text="${match.groupLetter}"></td>
-                            <td class="local-time" th:attr="data-utc=${match.matchDate}"></td>
+                            <td>
+                                <a th:href="@{/admin/match/{id}(id=${match.id})}" class="local-time text-decoration-none" th:attr="data-utc=${match.matchDate}" title="Edit kickoff time"></a>
+                            </td>
                             <td>
                                 <span th:text="${match.team1?.name != null ? match.team1.name : (t1d != null ? t1d : '')}"></span>
                                 <small class="text-muted" th:if="${match.team1?.name != null}" th:text="${match.team1?.countryCode}"></small>

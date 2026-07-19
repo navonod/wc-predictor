@@ -65,47 +65,105 @@
             </div>
 
             <div class="card shadow-sm mb-4">
-                <div class="card-header"><h5 class="mb-0">Tournament Award Points</h5></div>
+                <div class="card-header"><h5 class="mb-0">Tournament Awards</h5></div>
                 <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Golden Boot</label>
-                            <input type="number" class="form-control" name="setting_points_golden_boot"
-                                   th:value="${settings['points_golden_boot']?.value}" step="0.5" min="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Golden Ball</label>
-                            <input type="number" class="form-control" name="setting_points_golden_ball"
-                                   th:value="${settings['points_golden_ball']?.value}" step="0.5" min="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Golden Glove</label>
-                            <input type="number" class="form-control" name="setting_points_golden_glove"
-                                   th:value="${settings['points_golden_glove']?.value}" step="0.5" min="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Best Young Player</label>
-                            <input type="number" class="form-control" name="setting_points_young_player"
-                                   th:value="${settings['points_young_player']?.value}" step="0.5" min="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Fair Play Trophy</label>
-                            <input type="number" class="form-control" name="setting_points_fair_play"
-                                   th:value="${settings['points_fair_play']?.value}" step="0.5" min="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Most Entertaining</label>
-                            <input type="number" class="form-control" name="setting_points_entertaining"
-                                   th:value="${settings['points_entertaining']?.value}" step="0.5" min="0">
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small">Golden Boot (Player Name)</label>
+                            <input type="text" class="form-control form-control-sm" name="actual_golden_boot"
+                                   th:value="${actual?.goldenBoot}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Finalist (each)</label>
-                            <input type="number" class="form-control" name="setting_points_finalist"
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_golden_boot"
+                                   th:value="${settings['points_golden_boot']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Golden Ball (Player Name)</label>
+                            <input type="text" class="form-control form-control-sm" name="actual_golden_ball"
+                                   th:value="${actual?.goldenBall}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_golden_ball"
+                                   th:value="${settings['points_golden_ball']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Golden Glove (Player Name)</label>
+                            <input type="text" class="form-control form-control-sm" name="actual_golden_glove"
+                                   th:value="${actual?.goldenGlove}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_golden_glove"
+                                   th:value="${settings['points_golden_glove']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Best Young Player (Player Name)</label>
+                            <input type="text" class="form-control form-control-sm" name="actual_young_player"
+                                   th:value="${actual?.youngPlayer}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_young_player"
+                                   th:value="${settings['points_young_player']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Fair Play Trophy (Team)</label>
+                            <select class="form-select form-select-sm" name="actual_fair_play">
+                                <option value="">-- Select --</option>
+                                <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"
+                                        th:selected="${actual?.fairPlay?.id == team.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_fair_play"
+                                   th:value="${settings['points_fair_play']?.value}" step="0.5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Most Entertaining (Team)</label>
+                            <select class="form-select form-select-sm" name="actual_entertaining">
+                                <option value="">-- Select --</option>
+                                <option th:each="team : ${teams}" th:value="${team.id}" th:text="${team.name}"
+                                        th:selected="${actual?.mostEntertaining?.id == team.id}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">Points</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_entertaining"
+                                   th:value="${settings['points_entertaining']?.value}" step="0.5" min="0">
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="text-muted mb-3">Finalists & Champion <small class="text-muted">(auto-filled from Match 104)</small></h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small">Finalist 1</label>
+                            <input type="text" class="form-control form-control-sm" readonly
+                                   th:value="${match104?.team1?.name}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Finalist 2</label>
+                            <input type="text" class="form-control form-control-sm" readonly
+                                   th:value="${match104?.team2?.name}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Champion</label>
+                            <input type="text" class="form-control form-control-sm" readonly
+                                   th:value="${match104?.team1Score != null && match104?.team2Score != null ? (match104.team1Score > match104.team2Score ? match104.team1?.name : match104.team2?.name) : ''}">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">Finalist (Points each)</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_finalist"
                                    th:value="${settings['points_finalist']?.value}" step="0.5" min="0">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Champion</label>
-                            <input type="number" class="form-control" name="setting_points_champion"
+                            <label class="form-label small">Champion (Points)</label>
+                            <input type="number" class="form-control form-control-sm" name="setting_points_champion"
                                    th:value="${settings['points_champion']?.value}" step="0.5" min="0">
                         </div>
                     </div>

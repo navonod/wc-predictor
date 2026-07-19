@@ -99,8 +99,10 @@ public class ScoringService {
     }
 
     public double getTotalAwardPoints(UUID userId) {
-        return calculateTournamentAwardPoints(userId).values().stream()
-                .mapToDouble(Double::doubleValue).sum();
+        return tournamentPredictionRepo.findByUserId(userId)
+                .map(p -> (p.getAwardPoints() != null ? p.getAwardPoints() : 0.0)
+                        + (p.getManualAwardPoints() != null ? p.getManualAwardPoints() : 0.0))
+                .orElse(0.0);
     }
 
     public double calculateGroupAdvancementPoints(UUID userId) {

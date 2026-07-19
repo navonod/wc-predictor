@@ -79,6 +79,7 @@
                         <a th:if="${!tournamentStarted}" th:href="@{/predict/user/{userId}/tournament(userId=${target.id})}" class="btn btn-outline-primary"
                            th:text="${hasTournamentPrediction} ? 'Edit Tournament Predictions' : 'Make Tournament Predictions'"></a>
                         <a th:if="${tournamentStarted}" th:href="@{/predict/user/{userId}/tournament(userId=${target.id})}" class="btn btn-outline-primary">View Predictions</a>
+                        <a sec:authorize="hasRole('ADMIN')" th:href="@{/predict/user/{userId}/tournament/score(userId=${target.id})}" class="btn btn-outline-warning btn-sm ms-1">Score</a>
                     </div>
                 </div>
             </div>

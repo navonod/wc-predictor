@@ -133,6 +133,43 @@ public class AdminController {
         return "redirect:/admin/matches";
     }
 
+    @GetMapping("/match/{id}")
+    public String editMatchTime(@PathVariable UUID id, Model model) {
+        Match match = matchService.findById(id).orElse(null);
+        if (match == null) return "redirect:/admin/matches";
+        model.addAttribute("match", match);
+        return "admin/match-edit";
+    }
+
+    @PostMapping("/match/{id}/update-time")
+    public String updateMatchTime(@PathVariable UUID id,
+                                   @RequestParam String kickoffTime) {
+        Match match = matchService.findById(id).orElse(null);
+        if (match == null) return "redirect:/admin/matches";
+        LocalDateTime utc = LocalDateTime.parse(kickoffTime);
+        match.setMatchDate(utc);
+        match.setPredictionsLockTime(utc);
+        matchService.save(match);
+
+        RoundType round = match.getRound();
+        if (round != null) {
+            var allInRound = matchService.getMatchesByRound(round);
+            var earliest = allInRound.stream()
+                    .map(Match::getMatchDate)
+                    .filter(Objects::nonNull)
+                    .min(Comparator.naturalOrder())
+                    .orElse(utc);
+            for (Match m : allInRound) {
+                if (!m.isPredictionsLocked()) {
+                    m.setPredictionsLockTime(earliest);
+                    matchService.save(m);
+                }
+            }
+        }
+
+        return "redirect:/admin/matches";
+    }
+
     @GetMapping("/settings")
     public String manageSettings(Model model) {
         List<Setting> settings = settingService.getAllSettings();
@@ -141,6 +178,14 @@ public class AdminController {
             settingsMap.put(s.getName(), s);
         }
         model.addAttribute("settings", settingsMap);
+        model.addAttribute("teams", teamService.getAllTeams());
+
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        model.addAttribute("actual", predictionService.getOrCreateTournamentActual(tournamentId));
+        model.addAttribute("match104", matchService.getMatchesByRound(RoundType.FINAL).stream()
+                .filter(m -> m.getMatchNumber() == 104).findFirst().orElse(null));
+
         return "admin/settings";
     }
 
@@ -156,6 +201,14 @@ public class AdminController {
                 settingService.save(setting);
             }
         }
+
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        if (tournamentId != null) {
+            predictionService.saveTournamentActualFromSettings(tournamentId, params);
+        }
+        predictionService.recalculateAllAwardPoints(tournamentId);
+
         return "redirect:/admin/settings?updated";
     }
 

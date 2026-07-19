@@ -2,31 +2,37 @@ package wcpredictor.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.Instant;
+
 import java.util.UUID;
 
 @Entity
-@Table(name = "tournament_predictions")
+@Table(name = "tournament_actuals")
 @Data
-public class TournamentPrediction {
+public class TournamentActual {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, unique = true)
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tournament_id")
+    @JoinColumn(name = "tournament_id", unique = true, nullable = false)
     private Tournament tournament;
 
     private String goldenBoot;
+
     private String goldenBall;
+
     private String goldenGlove;
+
     private String youngPlayer;
-    private String fairPlay;
-    private String mostEntertaining;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fair_play_id")
+    private Team fairPlay;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "entertaining_id")
+    private Team mostEntertaining;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "finalist1_id")
@@ -38,17 +44,5 @@ public class TournamentPrediction {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "champion_id")
-    private Team champion;
-
-    @Column(nullable = false)
-    private Instant timestamp;
-
-    private Double awardPoints;
-
-    private Double manualAwardPoints;
-
-    private Boolean goldenBootCorrect;
-    private Boolean goldenBallCorrect;
-    private Boolean goldenGloveCorrect;
-    private Boolean youngPlayerCorrect;
+    private Team championTeam;
 }
