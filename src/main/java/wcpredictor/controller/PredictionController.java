@@ -202,14 +202,19 @@ public class PredictionController {
         User target = userService.findById(userId).orElse(null);
         if (target == null) return "redirect:/predict";
 
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(Tournament::getId).orElse(null);
+        predictionService.recalculateAllAwardPoints(tournamentId);
+
         var existing = predictionService.getUserTournamentPrediction(target.getId());
         model.addAttribute("prediction", existing.orElse(null));
         model.addAttribute("target", target);
-
-        UUID tournamentId = tournamentService.findAll().stream().findFirst()
-                .map(Tournament::getId).orElse(null);
         model.addAttribute("actual", predictionService.getOrCreateTournamentActual(tournamentId));
         model.addAttribute("settings", predictionService.getAwardSettings());
+        model.addAttribute("allUsers", userService.findAll().stream()
+                .filter(u -> u.getConfirmed() != null && u.getConfirmed())
+                .filter(u -> u.getNickname() != null && !u.getNickname().isBlank())
+                .toList());
 
         return "tournament-score";
     }

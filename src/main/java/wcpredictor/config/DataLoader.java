@@ -2,6 +2,7 @@ package wcpredictor.config;
 
 import wcpredictor.entity.*;
 import wcpredictor.repository.*;
+import wcpredictor.service.PredictionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -83,7 +84,8 @@ public class DataLoader {
                                        TournamentRepository tournamentRepo,
                                        GroupAdvancementPredictionRepository gapRepo,
                                        TournamentTeamRepository ttRepo,
-                                       EntityManager entityManager) {
+                                       EntityManager entityManager,
+                                       PredictionService predictionService) {
         return args -> {
             seedAllCountries(teamRepo);
 
@@ -167,6 +169,8 @@ public class DataLoader {
                 poolRepo.save(pool);
                 log.info("Default pool created with admin user.");
             }
+
+            predictionService.trimAllPredictions();
         };
     }
 

@@ -92,6 +92,55 @@
                     <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'GROUP_MD3'})}"
                        class="btn btn-outline-primary btn-sm">Matchday 3</a>
                 </div>
+                <hr class="my-2">
+                <div class="d-flex flex-wrap gap-2">
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'ROUND_OF_32'})}"
+                       class="btn btn-outline-success btn-sm">Round of 32</a>
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'ROUND_OF_16'})}"
+                       class="btn btn-outline-success btn-sm">Round of 16</a>
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'QUARTER_FINAL'})}"
+                       class="btn btn-outline-success btn-sm">Quarter-finals</a>
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'SEMI_FINAL'})}"
+                       class="btn btn-outline-success btn-sm">Semi-finals</a>
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'THIRD_PLACE'})}"
+                       class="btn btn-outline-success btn-sm">Third Place</a>
+                    <a th:href="@{/predict/user/{userId}/stage/{roundType}(userId=${player.id}, roundType=${'FINAL'})}"
+                       class="btn btn-outline-success btn-sm">Final</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white"><h5 class="mb-0">Tournament Summary</h5></div>
+            <div class="card-body p-0 p-md-2">
+                <div class="row g-2 mb-3 px-2 pt-2">
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Match Points</small>
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(matchPoints, 1, 'COMMA', 1, 'POINT')}"></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Group Points</small>
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(groupPoints, 1, 'COMMA', 1, 'POINT')}"></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center">
+                            <small class="text-muted">Award Points</small>
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(awardPoints, 1, 'COMMA', 1, 'POINT')}"></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-2 text-center bg-light">
+                            <small class="text-muted">Total</small>
+                            <div class="fw-bold fs-5" th:text="${#numbers.formatDecimal(matchPoints + groupPoints + awardPoints, 1, 'COMMA', 1, 'POINT')}"></div>
+                        </div>
+                    </div>
+                </div>
+                <h6 class="px-2 text-muted">Tournament Awards</h6>
+                <th:block th:replace="~{fragments/tournament-score-table :: tournament-score-table(prediction=${prediction}, actual=${actual}, settings=${settings}, isAdmin=${isAdmin}, target=${player})}"></th:block>
             </div>
         </div>
     </div>

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import wcpredictor.entity.User;
-import wcpredictor.service.UserService;
+import wcpredictor.service.*;
 
 import java.util.UUID;
 
@@ -17,9 +17,16 @@ public class PlayerController {
     private static final Logger log = LoggerFactory.getLogger(PlayerController.class);
 
     private final UserService userService;
+    private final PredictionService predictionService;
+    private final ScoringService scoringService;
+    private final TournamentService tournamentService;
 
-    public PlayerController(UserService userService) {
+    public PlayerController(UserService userService, PredictionService predictionService,
+                             ScoringService scoringService, TournamentService tournamentService) {
         this.userService = userService;
+        this.predictionService = predictionService;
+        this.scoringService = scoringService;
+        this.tournamentService = tournamentService;
     }
 
     @GetMapping("/player/{id}")
@@ -37,6 +44,23 @@ public class PlayerController {
         model.addAttribute("player", target);
         model.addAttribute("isSelf", isSelf);
         model.addAttribute("isAdmin", isAdmin);
+
+        var prediction = predictionService.getUserTournamentPrediction(target.getId()).orElse(null);
+        model.addAttribute("prediction", prediction);
+
+        UUID tournamentId = tournamentService.findAll().stream().findFirst()
+                .map(wcpredictor.entity.Tournament::getId).orElse(null);
+        model.addAttribute("actual", predictionService.getOrCreateTournamentActual(tournamentId));
+        model.addAttribute("settings", predictionService.getAwardSettings());
+
+        predictionService.recalculateAllAwardPoints(tournamentId);
+        prediction = predictionService.getUserTournamentPrediction(target.getId()).orElse(null);
+        model.addAttribute("prediction", prediction);
+
+        model.addAttribute("matchPoints", scoringService.getTotalMatchPoints(target.getId()));
+        model.addAttribute("groupPoints", scoringService.calculateGroupAdvancementPoints(target.getId()));
+        model.addAttribute("awardPoints", scoringService.getTotalAwardPoints(target.getId()));
+
         return "player";
     }
 

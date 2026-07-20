@@ -38,6 +38,12 @@
                 <option value="GROUP_MD1" th:selected="${round.name() == 'GROUP_MD1'}">Matchday 1</option>
                 <option value="GROUP_MD2" th:selected="${round.name() == 'GROUP_MD2'}">Matchday 2</option>
                 <option value="GROUP_MD3" th:selected="${round.name() == 'GROUP_MD3'}">Matchday 3</option>
+                <option value="ROUND_OF_32" th:selected="${round.name() == 'ROUND_OF_32'}">Round of 32</option>
+                <option value="ROUND_OF_16" th:selected="${round.name() == 'ROUND_OF_16'}">Round of 16</option>
+                <option value="QUARTER_FINAL" th:selected="${round.name() == 'QUARTER_FINAL'}">Quarter-finals</option>
+                <option value="SEMI_FINAL" th:selected="${round.name() == 'SEMI_FINAL'}">Semi-finals</option>
+                <option value="THIRD_PLACE" th:selected="${round.name() == 'THIRD_PLACE'}">Third Place</option>
+                <option value="FINAL" th:selected="${round.name() == 'FINAL'}">Final</option>
             </select>
         </div>
         <input type="hidden" id="userId" th:value="${target.id}">

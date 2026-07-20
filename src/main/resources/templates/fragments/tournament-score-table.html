@@ -1,0 +1,155 @@
+<th:block xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+          th:fragment="tournament-score-table(prediction, actual, settings, isAdmin, target)">
+    <div th:if="${prediction == null}" class="text-muted small py-2 px-2">No tournament predictions submitted.</div>
+    <div th:if="${prediction != null}">
+        <form th:if="${isAdmin}" method="post" th:action="@{/predict/user/{userId}/tournament/score(userId=${target.id})}">
+        <table class="table table-bordered table-sm mb-2">
+            <thead class="table-dark">
+                <tr><th>Award</th><th>Prediction</th><th>Actual</th><th class="text-center">Score</th></tr>
+            </thead>
+            <tbody>
+                <tr th:with="pts=${settings['golden_boot']}">
+                    <td class="small text-muted">Golden Boot</td><td th:text="${prediction.goldenBoot}"></td>
+                    <td><span th:if="${actual?.goldenBoot != null}" class="fw-bold" th:text="${actual.goldenBoot}"></span><span th:unless="${actual?.goldenBoot != null}" class="text-muted">-</span></td>
+                    <td class="text-center">
+                        <span th:if="${actual?.goldenBoot == null}" class="text-muted small">pending</span>
+                        <th:block th:if="${actual?.goldenBoot != null}">
+                            <input th:if="${isAdmin}" type="checkbox" name="boots" th:value="${pts}" th:checked="${prediction.goldenBootCorrect}">
+                            <span th:unless="${isAdmin}"><span th:text="${prediction.goldenBootCorrect ? pts : 0}"></span> pts</span>
+                            <small th:if="${isAdmin}" th:text="${'('+ #numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts)'}"></small>
+                        </th:block>
+                    </td>
+                </tr>
+                <tr th:with="pts=${settings['golden_ball']}">
+                    <td class="small text-muted">Golden Ball</td><td th:text="${prediction.goldenBall}"></td>
+                    <td><span th:if="${actual?.goldenBall != null}" class="fw-bold" th:text="${actual.goldenBall}"></span><span th:unless="${actual?.goldenBall != null}" class="text-muted">-</span></td>
+                    <td class="text-center">
+                        <span th:if="${actual?.goldenBall == null}" class="text-muted small">pending</span>
+                        <th:block th:if="${actual?.goldenBall != null}">
+                            <input th:if="${isAdmin}" type="checkbox" name="ball" th:value="${pts}" th:checked="${prediction.goldenBallCorrect}">
+                            <span th:unless="${isAdmin}"><span th:text="${prediction.goldenBallCorrect ? pts : 0}"></span> pts</span>
+                            <small th:if="${isAdmin}" th:text="${'('+ #numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts)'}"></small>
+                        </th:block>
+                    </td>
+                </tr>
+                <tr th:with="pts=${settings['golden_glove']}">
+                    <td class="small text-muted">Golden Glove</td><td th:text="${prediction.goldenGlove}"></td>
+                    <td><span th:if="${actual?.goldenGlove != null}" class="fw-bold" th:text="${actual.goldenGlove}"></span><span th:unless="${actual?.goldenGlove != null}" class="text-muted">-</span></td>
+                    <td class="text-center">
+                        <span th:if="${actual?.goldenGlove == null}" class="text-muted small">pending</span>
+                        <th:block th:if="${actual?.goldenGlove != null}">
+                            <input th:if="${isAdmin}" type="checkbox" name="glove" th:value="${pts}" th:checked="${prediction.goldenGloveCorrect}">
+                            <span th:unless="${isAdmin}"><span th:text="${prediction.goldenGloveCorrect ? pts : 0}"></span> pts</span>
+                            <small th:if="${isAdmin}" th:text="${'('+ #numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts)'}"></small>
+                        </th:block>
+                    </td>
+                </tr>
+                <tr th:with="pts=${settings['young_player']}">
+                    <td class="small text-muted">Best Young Player</td><td th:text="${prediction.youngPlayer}"></td>
+                    <td><span th:if="${actual?.youngPlayer != null}" class="fw-bold" th:text="${actual.youngPlayer}"></span><span th:unless="${actual?.youngPlayer != null}" class="text-muted">-</span></td>
+                    <td class="text-center">
+                        <span th:if="${actual?.youngPlayer == null}" class="text-muted small">pending</span>
+                        <th:block th:if="${actual?.youngPlayer != null}">
+                            <input th:if="${isAdmin}" type="checkbox" name="young" th:value="${pts}" th:checked="${prediction.youngPlayerCorrect}">
+                            <span th:unless="${isAdmin}"><span th:text="${prediction.youngPlayerCorrect ? pts : 0}"></span> pts</span>
+                            <small th:if="${isAdmin}" th:text="${'('+ #numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts)'}"></small>
+                        </th:block>
+                    </td>
+                </tr>
+                <tr th:with="pts=${settings['fair_play']}, correct=${actual?.fairPlay != null && prediction.fairPlay != null && actual.fairPlay.name != null && actual.fairPlay.name.equalsIgnoreCase(prediction.fairPlay)}">
+                    <td class="small text-muted">Fair Play Trophy</td><td th:text="${prediction.fairPlay}"></td>
+                    <td><span th:if="${actual?.fairPlay != null}" class="fw-bold" th:text="${actual.fairPlay.name}"></span><span th:unless="${actual?.fairPlay != null}" class="text-muted">-</span></td>
+                    <td class="text-center"><span th:if="${actual?.fairPlay == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.fairPlay != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                </tr>
+                <tr th:with="pts=${settings['entertaining']}, correct=${actual?.mostEntertaining != null && prediction.mostEntertaining != null && actual.mostEntertaining.name != null && actual.mostEntertaining.name.equalsIgnoreCase(prediction.mostEntertaining)}">
+                    <td class="small text-muted">Most Entertaining</td><td th:text="${prediction.mostEntertaining}"></td>
+                    <td><span th:if="${actual?.mostEntertaining != null}" class="fw-bold" th:text="${actual.mostEntertaining.name}"></span><span th:unless="${actual?.mostEntertaining != null}" class="text-muted">-</span></td>
+                    <td class="text-center"><span th:if="${actual?.mostEntertaining == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.mostEntertaining != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                </tr>
+                <tr th:with="pts=${settings['finalist']}, correct=${actual?.finalist1 != null && prediction.finalist1 != null && (actual.finalist1.id == prediction.finalist1.id || (actual.finalist2 != null && actual.finalist2.id == prediction.finalist1.id))}">
+                    <td class="small text-muted">Finalist 1</td><td th:text="${prediction.finalist1?.name}"></td>
+                    <td th:text="${actual?.finalist1?.name}"><span th:unless="${actual?.finalist1 != null}" class="text-muted">-</span></td>
+                    <td class="text-center"><span th:if="${actual?.finalist1 == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.finalist1 != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                </tr>
+                <tr th:with="pts=${settings['finalist']}, correct=${actual?.finalist2 != null && prediction.finalist2 != null && (actual.finalist2.id == prediction.finalist2.id || (actual.finalist1 != null && actual.finalist1.id == prediction.finalist2.id))}">
+                    <td class="small text-muted">Finalist 2</td><td th:text="${prediction.finalist2?.name}"></td>
+                    <td><span th:if="${actual?.finalist2 != null}" class="fw-bold" th:text="${actual.finalist2.name}"></span><span th:unless="${actual?.finalist2 != null}" class="text-muted">-</span></td>
+                    <td class="text-center"><span th:if="${actual?.finalist2 == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.finalist2 != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                </tr>
+                <tr th:with="pts=${settings['champion']}, correct=${actual?.championTeam != null && prediction.champion != null && actual.championTeam.id == prediction.champion.id}">
+                    <td class="small text-muted fw-bold">Champion</td><td class="fw-bold" th:text="${prediction.champion?.name}"></td>
+                    <td><span th:if="${actual?.championTeam != null}" class="fw-bold" th:text="${actual.championTeam.name}"></span><span th:unless="${actual?.championTeam != null}" class="text-muted">-</span></td>
+                    <td class="text-center"><span th:if="${actual?.championTeam == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.championTeam != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center px-2">
+            <div>
+                <span class="fw-bold">Auto: </span><span class="badge bg-success" th:text="${#numbers.formatDecimal(prediction.awardPoints != null ? prediction.awardPoints : 0, 1, 'COMMA', 1, 'POINT')}"></span>
+                <span class="mx-2">+</span><span class="fw-bold">Manual: </span><span class="badge bg-warning text-dark" th:text="${#numbers.formatDecimal(prediction.manualAwardPoints != null ? prediction.manualAwardPoints : 0, 1, 'COMMA', 1, 'POINT')}"></span>
+                <span class="mx-2">=</span><span class="fw-bold">Total: </span><span class="badge bg-primary" th:text="${#numbers.formatDecimal((prediction.awardPoints != null ? prediction.awardPoints : 0) + (prediction.manualAwardPoints != null ? prediction.manualAwardPoints : 0), 1, 'COMMA', 1, 'POINT')}"></span>
+            </div>
+            <button th:if="${isAdmin}" type="submit" class="btn btn-primary btn-sm">Save</button>
+        </div>
+        </form>
+        <th:block th:unless="${isAdmin}">
+            <table class="table table-bordered table-sm mb-2">
+                <thead class="table-dark">
+                    <tr><th>Award</th><th>Prediction</th><th>Actual</th><th class="text-center">Score</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:with="pts=${settings['golden_boot']}">
+                        <td class="small text-muted">Golden Boot</td><td th:text="${prediction.goldenBoot}"></td>
+                        <td><span th:if="${actual?.goldenBoot != null}" class="fw-bold" th:text="${actual.goldenBoot}"></span><span th:unless="${actual?.goldenBoot != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.goldenBoot == null}" class="text-muted small">pending</span><span th:if="${actual?.goldenBoot != null}"><span class="badge" th:classappend="${prediction.goldenBootCorrect ? 'bg-warning text-dark' : 'bg-danger'}" th:text="${(prediction.goldenBootCorrect ? pts : 0) + ' pts'}"></span></span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['golden_ball']}">
+                        <td class="small text-muted">Golden Ball</td><td th:text="${prediction.goldenBall}"></td>
+                        <td><span th:if="${actual?.goldenBall != null}" class="fw-bold" th:text="${actual.goldenBall}"></span><span th:unless="${actual?.goldenBall != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.goldenBall == null}" class="text-muted small">pending</span><span th:if="${actual?.goldenBall != null}"><span class="badge" th:classappend="${prediction.goldenBallCorrect ? 'bg-warning text-dark' : 'bg-danger'}" th:text="${(prediction.goldenBallCorrect ? pts : 0) + ' pts'}"></span></span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['golden_glove']}">
+                        <td class="small text-muted">Golden Glove</td><td th:text="${prediction.goldenGlove}"></td>
+                        <td><span th:if="${actual?.goldenGlove != null}" class="fw-bold" th:text="${actual.goldenGlove}"></span><span th:unless="${actual?.goldenGlove != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.goldenGlove == null}" class="text-muted small">pending</span><span th:if="${actual?.goldenGlove != null}"><span class="badge" th:classappend="${prediction.goldenGloveCorrect ? 'bg-warning text-dark' : 'bg-danger'}" th:text="${(prediction.goldenGloveCorrect ? pts : 0) + ' pts'}"></span></span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['young_player']}">
+                        <td class="small text-muted">Best Young Player</td><td th:text="${prediction.youngPlayer}"></td>
+                        <td><span th:if="${actual?.youngPlayer != null}" class="fw-bold" th:text="${actual.youngPlayer}"></span><span th:unless="${actual?.youngPlayer != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.youngPlayer == null}" class="text-muted small">pending</span><span th:if="${actual?.youngPlayer != null}"><span class="badge" th:classappend="${prediction.youngPlayerCorrect ? 'bg-warning text-dark' : 'bg-danger'}" th:text="${(prediction.youngPlayerCorrect ? pts : 0) + ' pts'}"></span></span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['fair_play']}, correct=${actual?.fairPlay != null && prediction.fairPlay != null && actual.fairPlay.name != null && actual.fairPlay.name.trim().equalsIgnoreCase(prediction.fairPlay.trim())}">
+                        <td class="small text-muted">Fair Play Trophy</td><td th:text="${prediction.fairPlay}"></td>
+                        <td><span th:if="${actual?.fairPlay != null}" class="fw-bold" th:text="${actual.fairPlay.name}"></span><span th:unless="${actual?.fairPlay != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.fairPlay == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.fairPlay != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['entertaining']}, correct=${actual?.mostEntertaining != null && prediction.mostEntertaining != null && actual.mostEntertaining.name != null && actual.mostEntertaining.name.trim().equalsIgnoreCase(prediction.mostEntertaining.trim())}">
+                        <td class="small text-muted">Most Entertaining</td><td th:text="${prediction.mostEntertaining}"></td>
+                        <td><span th:if="${actual?.mostEntertaining != null}" class="fw-bold" th:text="${actual.mostEntertaining.name}"></span><span th:unless="${actual?.mostEntertaining != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.mostEntertaining == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.mostEntertaining != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['finalist']}, correct=${actual?.finalist1 != null && prediction.finalist1 != null && (actual.finalist1.id == prediction.finalist1.id || (actual.finalist2 != null && actual.finalist2.id == prediction.finalist1.id))}">
+                        <td class="small text-muted">Finalist 1</td><td th:text="${prediction.finalist1?.name}"></td>
+                        <td th:text="${actual?.finalist1?.name}"><span th:unless="${actual?.finalist1 != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.finalist1 == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.finalist1 != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['finalist']}, correct=${actual?.finalist2 != null && prediction.finalist2 != null && (actual.finalist2.id == prediction.finalist2.id || (actual.finalist1 != null && actual.finalist1.id == prediction.finalist2.id))}">
+                        <td class="small text-muted">Finalist 2</td><td th:text="${prediction.finalist2?.name}"></td>
+                        <td><span th:if="${actual?.finalist2 != null}" class="fw-bold" th:text="${actual.finalist2.name}"></span><span th:unless="${actual?.finalist2 != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.finalist2 == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.finalist2 != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                    </tr>
+                    <tr th:with="pts=${settings['champion']}, correct=${actual?.championTeam != null && prediction.champion != null && actual.championTeam.id == prediction.champion.id}">
+                        <td class="small text-muted fw-bold">Champion</td><td class="fw-bold" th:text="${prediction.champion?.name}"></td>
+                        <td><span th:if="${actual?.championTeam != null}" class="fw-bold" th:text="${actual.championTeam.name}"></span><span th:unless="${actual?.championTeam != null}" class="text-muted">-</span></td>
+                        <td class="text-center"><span th:if="${actual?.championTeam == null}" class="text-muted small">pending</span><span th:if="${correct}" class="badge bg-success" th:text="${#numbers.formatDecimal(pts, 1, 'COMMA', 1, 'POINT') + ' pts'}"></span><span th:if="${actual?.championTeam != null && !correct}" class="badge bg-danger">0 pts</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="px-2">
+                <span class="fw-bold">Auto: </span><span class="badge bg-success" th:text="${#numbers.formatDecimal(prediction.awardPoints != null ? prediction.awardPoints : 0, 1, 'COMMA', 1, 'POINT')}"></span>
+                <span class="mx-2">+</span><span class="fw-bold">Manual: </span><span class="badge bg-warning text-dark" th:text="${#numbers.formatDecimal(prediction.manualAwardPoints != null ? prediction.manualAwardPoints : 0, 1, 'COMMA', 1, 'POINT')}"></span>
+                <span class="mx-2">=</span><span class="fw-bold">Total: </span><span class="badge bg-primary" th:text="${#numbers.formatDecimal((prediction.awardPoints != null ? prediction.awardPoints : 0) + (prediction.manualAwardPoints != null ? prediction.manualAwardPoints : 0), 1, 'COMMA', 1, 'POINT')}"></span>
+            </div>
+        </th:block>
+    </div>
+</th:block>

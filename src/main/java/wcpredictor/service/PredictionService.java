@@ -50,6 +50,7 @@ public class PredictionService {
         this.tournamentActualRepo = tournamentActualRepo;
     }
 
+    @Transactional
     public TournamentActual getOrCreateTournamentActual(UUID tournamentId) {
         if (tournamentId == null) return null;
         var actual = tournamentActualRepo.findByTournamentId(tournamentId)
@@ -57,16 +58,47 @@ public class PredictionService {
 
         Match finalMatch = matchRepository.findAll().stream()
                 .filter(m -> m.getMatchNumber() == 104).findFirst().orElse(null);
+        boolean changed = false;
         if (finalMatch != null) {
-            if (actual.getFinalist1() == null) actual.setFinalist1(finalMatch.getTeam1());
-            if (actual.getFinalist2() == null) actual.setFinalist2(finalMatch.getTeam2());
-            if (finalMatch.getTeam1Score() != null && finalMatch.getTeam2Score() != null) {
+            if (actual.getFinalist1() == null && finalMatch.getTeam1() != null) {
+                actual.setFinalist1(finalMatch.getTeam1()); changed = true;
+            }
+            if (actual.getFinalist2() == null && finalMatch.getTeam2() != null) {
+                actual.setFinalist2(finalMatch.getTeam2()); changed = true;
+            }
+            if (actual.getChampionTeam() == null && finalMatch.getTeam1Score() != null
+                    && finalMatch.getTeam2Score() != null) {
                 Team winner = finalMatch.getTeam1Score() > finalMatch.getTeam2Score()
                         ? finalMatch.getTeam1() : finalMatch.getTeam2();
-                if (actual.getChampionTeam() == null) actual.setChampionTeam(winner);
+                actual.setChampionTeam(winner);
+                changed = true;
             }
         }
+        if (changed) {
+            Tournament t = new Tournament();
+            t.setId(tournamentId);
+            actual.setTournament(t);
+            tournamentActualRepo.save(actual);
+        }
         return actual;
+    }
+
+    private String trim(String s) {
+        return s != null ? s.trim() : null;
+    }
+
+    @Transactional
+    public void trimAllPredictions() {
+        for (var pred : tournamentPredictionRepo.findAll()) {
+            boolean changed = false;
+            if (pred.getFairPlay() != null && !pred.getFairPlay().equals(pred.getFairPlay().trim())) {
+                pred.setFairPlay(pred.getFairPlay().trim()); changed = true;
+            }
+            if (pred.getMostEntertaining() != null && !pred.getMostEntertaining().equals(pred.getMostEntertaining().trim())) {
+                pred.setMostEntertaining(pred.getMostEntertaining().trim()); changed = true;
+            }
+            if (changed) tournamentPredictionRepo.save(pred);
+        }
     }
 
     @Transactional
@@ -126,10 +158,10 @@ public class PredictionService {
                 pts += finalistPts;
             if (actual.getFairPlay() != null && pred.getFairPlay() != null
                     && actual.getFairPlay().getName() != null
-                    && actual.getFairPlay().getName().equalsIgnoreCase(pred.getFairPlay())) pts += fairPlayPts;
+                    && actual.getFairPlay().getName().trim().equalsIgnoreCase(pred.getFairPlay().trim())) pts += fairPlayPts;
             if (actual.getMostEntertaining() != null && pred.getMostEntertaining() != null
                     && actual.getMostEntertaining().getName() != null
-                    && actual.getMostEntertaining().getName().equalsIgnoreCase(pred.getMostEntertaining())) pts += entertainingPts;
+                    && actual.getMostEntertaining().getName().trim().equalsIgnoreCase(pred.getMostEntertaining().trim())) pts += entertainingPts;
             pred.setAwardPoints(pts);
             tournamentPredictionRepo.save(pred);
         }
@@ -319,12 +351,12 @@ public class PredictionService {
             t.setId(tournamentId);
             existing.setTournament(t);
         }
-        existing.setGoldenBoot(prediction.getGoldenBoot());
-        existing.setGoldenBall(prediction.getGoldenBall());
-        existing.setGoldenGlove(prediction.getGoldenGlove());
-        existing.setYoungPlayer(prediction.getYoungPlayer());
-        existing.setFairPlay(prediction.getFairPlay());
-        existing.setMostEntertaining(prediction.getMostEntertaining());
+        existing.setGoldenBoot(trim(prediction.getGoldenBoot()));
+        existing.setGoldenBall(trim(prediction.getGoldenBall()));
+        existing.setGoldenGlove(trim(prediction.getGoldenGlove()));
+        existing.setYoungPlayer(trim(prediction.getYoungPlayer()));
+        existing.setFairPlay(trim(prediction.getFairPlay()));
+        existing.setMostEntertaining(trim(prediction.getMostEntertaining()));
         existing.setFinalist1(prediction.getFinalist1());
         existing.setFinalist2(prediction.getFinalist2());
         existing.setChampion(prediction.getChampion());
